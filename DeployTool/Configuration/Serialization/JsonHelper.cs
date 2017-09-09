@@ -22,6 +22,9 @@ namespace DeployTool.Configuration
                     new SshConfigurationConverter(),
                     new ActionConverter(),
                 },
+
+                NullValueHandling = NullValueHandling.Ignore,
+                DefaultValueHandling = DefaultValueHandling.Ignore,
             };
         }
 

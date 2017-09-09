@@ -7,10 +7,18 @@ using DeployTool.Configuration;
 using DeployTool.Executers;
 using DeployTool.Helpers;
 
+// Typical command lines:
+// help                     show the help for this tool
+// create -f raf -m         create a minimalistic raf.deploy configuration
+// create -f raf            create a full raf.deploy configuration
+// interact                 show a console menu with all the available config files
+// run -f raf               runt the actions described in raf.deploy
+
 namespace DeployTool
 {
     class Program
     {
+        private ProjectHelper _project;
         static void Main(string[] args)
         {
             //CliCommandFactory.Instance.Register(x => new WatchCommand(x), "watch");
@@ -19,7 +27,9 @@ namespace DeployTool
             CliCommandFactory.Instance.Register(x => new InteractCommand(x), "interact");
             CliCommandFactory.Instance.Register(x => new HelpCommand(x), "help");
 
-            ProcessCLI(args);
+            Program p = new Program();
+
+            p.ProcessCLI(args);
             return;
 
 
@@ -39,9 +49,9 @@ namespace DeployTool
             config.PrivateKeys = null;
             var transfer = new SshTransfer(config);
 
-            transfer.CopyFileToRemote(new System.IO.FileInfo(@"h:\3d\raf.txt"), "/temp/1/2/3/aaaa/caaaaa");
-            transfer.ExecuteRemoteCommand("ls");
-            transfer.RemoveRemoteFolderTree("/temp");
+            transfer.SshCopyFileToRemote(new System.IO.FileInfo(@"h:\3d\raf.txt"), "/temp/1/2/3/aaaa/caaaaa");
+            transfer.SshRunCommand("ls");
+            transfer.SshRemoveRemoteFolderTree("/temp");
             //transfer.Transfer(new System.IO.DirectoryInfo(@"H:\3D"), "/temp", true, "/temp/raf.txt");
 
             //DirectoryWalker walker = new DirectoryWalker(new System.IO.DirectoryInfo("h:\\temp"), true, (f, r) =>
@@ -71,19 +81,19 @@ namespace DeployTool
             //executer.ExecuteAndWait();
         }
 
-        private static int ProcessCLI(string[] args)
+        private int ProcessCLI(string[] args)
         {
-            var project = EnsureProjectFolder();
+            _project = EnsureProjectFolder();
             var command = GetCommand(args);
-            if (project == null || command == null) return -1;
+            if (_project == null || command == null) return -1;
 
             switch (command)
             {
                 case HelpCommand helpCommand:
                     return ProcessHelpCommand(helpCommand);
 
-                case CreateCommand generateCommand:
-                    return ProcessGenerateCommand(generateCommand);
+                case CreateCommand createCommand:
+                    return ProcessCreateCommand(createCommand);
 
                 case InteractCommand interactCommand:
                     return ProcessInteractCommand(interactCommand);
@@ -97,7 +107,7 @@ namespace DeployTool
             }
         }
 
-        private static int ProcessHelpCommand(HelpCommand helpCommand)
+        private int ProcessHelpCommand(HelpCommand helpCommand)
         {
             Console.WriteLine("dotnet deploy tool v1.0 by @raffaeler (https://github.com/raffaeler/DeployTool)");
             Console.WriteLine("");
@@ -116,16 +126,25 @@ namespace DeployTool
             return 0;
         }
 
-        private static int ProcessGenerateCommand(CreateCommand generateCommand)
+        private int ProcessCreateCommand(CreateCommand createCommand)
         {
             var extension = "." + Constants.DeployExtension;
-            string filename = generateCommand.Filename;
-            if (!generateCommand.Filename.EndsWith(extension, StringComparison.CurrentCultureIgnoreCase))
+            string filename = createCommand.Filename;
+            if (!createCommand.Filename.EndsWith(extension, StringComparison.CurrentCultureIgnoreCase))
             {
-                filename = generateCommand.Filename + extension;
+                filename = createCommand.Filename + extension;
             }
 
-            var deployConfiguration = CreateSampleConfiguration();
+            DeployConfiguration deployConfiguration;
+            if(createCommand.IsMinimal)
+            {
+                deployConfiguration = CreateMinimalisticSampleConfiguration();
+            }
+            else
+            {
+                deployConfiguration = CreateSampleConfiguration();
+            }
+
             var serialized = JsonHelper.Serialize(deployConfiguration);
             try
             {
@@ -139,17 +158,17 @@ namespace DeployTool
             return 0;
         }
 
-        private static int ProcessInteractCommand(InteractCommand interactCommand)
+        private int ProcessInteractCommand(InteractCommand interactCommand)
         {
             var di = new System.IO.DirectoryInfo(System.IO.Directory.GetCurrentDirectory());
             var files = di
                 .GetFiles($"*.{Constants.DeployExtension}")
-                .Select(f => System.IO.Path.GetFileNameWithoutExtension(f.Name))
+                .Select(f => GetTitle(f))
                 .OrderBy(n => n)
                 .ToArray();
 
             string current;
-            while ((current = ConsoleManager.RunLoop("Select a configuration file:", files)) != null)
+            while ((current = ConsoleManager.RunLoop("Select a configuration file or 'q' to quit", files)) != null)
             {
                 var config = ReadConfiguration(current);
                 ProcessConfiguration(config);
@@ -158,19 +177,38 @@ namespace DeployTool
             return 0;
         }
 
-        private static int ProcessRunCommand(RunCommand runCommand)
+        private string GetTitle(System.IO.FileInfo fileInfo)
+        {
+            var simpleName = System.IO.Path.GetFileNameWithoutExtension(fileInfo.Name);
+            var content = System.IO.File.ReadAllText(fileInfo.FullName);
+            var config = JsonHelper.Deserialize(content);
+            if (config == null || config.Description == null)
+            {
+                return simpleName;
+            }
+
+            var actions = string.Join(", ", config.Actions.Select(a => a.GetShortActionName()));
+            if (string.IsNullOrEmpty(actions))
+            {
+                return $"{simpleName} ({config.Description}: no actions)";
+            }
+
+            return $"{simpleName} ({config.Description}: {actions})";
+        }
+
+        private int ProcessRunCommand(RunCommand runCommand)
         {
             var config = ReadConfiguration(runCommand.Filename);
             return ProcessConfiguration(config);
         }
 
-        private static int ProcessConfiguration(DeployConfiguration deployConfiguration)
+        private int ProcessConfiguration(DeployConfiguration deployConfiguration)
         {
 
             return 0;
         }
 
-        private static DeployConfiguration ReadConfiguration(string filename)
+        private DeployConfiguration ReadConfiguration(string filename)
         {
             try
             {
@@ -186,7 +224,7 @@ namespace DeployTool
             return null;
         }
 
-        private static ProjectHelper EnsureProjectFolder()
+        private ProjectHelper EnsureProjectFolder()
         {
             ProjectHelper project = null;
             try
@@ -201,7 +239,7 @@ namespace DeployTool
             return project;
         }
 
-        private static ICliCommand GetCommand(string[] args)
+        private ICliCommand GetCommand(string[] args)
         {
             ICliCommand command = null;
             try
@@ -220,7 +258,7 @@ namespace DeployTool
             return command;
         }
 
-        private static DeployConfiguration CreateSampleConfiguration()
+        private DeployConfiguration CreateSampleConfiguration()
         {
             var deployConfiguration = new DeployConfiguration()
             {
@@ -264,7 +302,7 @@ namespace DeployTool
                         VersionSuffix = "suffix",
                     },
 
-                    new CopyToRemoteAction()
+                    new SshCopyToRemoteAction()
                     {
                         DeleteRemoteFolder = true,
                         Recurse = true,
@@ -272,16 +310,51 @@ namespace DeployTool
                         LocalItems = new [] { null, "sqlite.db" },
                     },
 
-                    new ExecuteCommandAction()
+                    new SshRunCommandAction()
                     {
                         Command = "ls",
                     },
 
-                    new ExecuteRemoteAppAction()
+                    new SshRunAppAction()
                     {
                         Arguments = "hello",
                         RemoteFolder = null,
                         RemoteApp = null,
+                    },
+                },
+            };
+
+            return deployConfiguration;
+        }
+
+        private DeployConfiguration CreateMinimalisticSampleConfiguration()
+        {
+            var deployConfiguration = new DeployConfiguration()
+            {
+                Description = "Test",
+
+                Ssh = new SshConfiguration()
+                {
+                    Host = "machine-name",
+                    Username = "username",
+                    Password = "password",
+                },
+
+                Actions = new List<IAction>()
+                {
+                    new DotnetPublishAction()
+                    {
+                        Configuration = "Release",
+                        IsSelfContained = true,
+                        RuntimeIdentifier = "linux-arm",
+                    },
+
+                    new SshCopyToRemoteAction()
+                    {
+                        DeleteRemoteFolder = true,
+                        Recurse = true,
+                        RemoteFolder = $"/{_project.AssemblyName.ToLower()}",
+                        LocalItems = null,
                     },
                 },
             };

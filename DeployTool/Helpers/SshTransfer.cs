@@ -70,9 +70,9 @@ namespace DeployTool.Helpers
             }
         }
 
-        public void CopyFileToRemote(FileInfo fileInfo, string remoteFolder)
+        public void SshCopyFileToRemote(FileInfo fileInfo, string remoteFolder)
         {
-            CreateRemoteFolder(remoteFolder);
+            SshCreateRemoteFolder(remoteFolder);
             var remoteFile = $"{remoteFolder.TrimEnd('/')}/{fileInfo.Name}";
 
             using (var client = new ScpClient(_connectionInfo))
@@ -94,7 +94,7 @@ namespace DeployTool.Helpers
             }
         }
 
-        public void CreateRemoteFolder(string remoteFolder)
+        public void SshCreateRemoteFolder(string remoteFolder)
         {
             if (!remoteFolder.StartsWith("/"))
             {
@@ -122,7 +122,7 @@ namespace DeployTool.Helpers
             }
         }
 
-        public void CopyDirectoryToRemote(DirectoryInfo localFolder, string remoteFolder, bool recurse, string remoteExecutable = null)
+        public void SshCopyDirectoryToRemote(DirectoryInfo localFolder, string remoteFolder, bool recurse, string remoteExecutable = null)
         {
             using (var client = new ScpClient(_connectionInfo))
             {
@@ -160,7 +160,7 @@ namespace DeployTool.Helpers
             }
         }
 
-        public void RemoveRemoteFolderTree(string remoteFolder)
+        public void SshRemoveRemoteFolderTree(string remoteFolder)
         {
             if (!remoteFolder.StartsWith("/"))
             {
@@ -182,7 +182,7 @@ namespace DeployTool.Helpers
             }
         }
 
-        public string ExecuteRemoteCommand(string remoteCommand)
+        public string SshRunCommand(string remoteCommand)
         {
             using (var client = new SshClient(_connectionInfo))
             {

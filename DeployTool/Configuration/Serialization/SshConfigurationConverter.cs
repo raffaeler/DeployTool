@@ -47,7 +47,11 @@ namespace DeployTool.Configuration
 
             var jo = new JObject();
             jo.AddIfNotEqual(serializer, "Host", item.Host, null);
-            jo.AddIfNotEqual(serializer, "Port", item.Port, 22);
+            if (item.Port != 22 && item.Port != 0)
+            {
+                jo.AddIfNotEqual(serializer, "Port", item.Port, 22);
+            }
+
             jo.AddIfNotEqual(serializer, "Username", item.Username, null);
             jo.AddIfNotEqual(serializer, "Password", item.Password, null);
 

@@ -4,12 +4,14 @@ using System.Text;
 
 namespace DeployTool.Configuration
 {
-    public class ExecuteCommandAction : IAction
+    public class SshRunCommandAction : IAction
     {
-        public ExecuteCommandAction()
+        public SshRunCommandAction()
         {
             ActionName = this.GetType().Name;
         }
+
+        public string GetShortActionName() => "SshRunCommand";
 
         public string ActionName { get; set; }
         public string Command { get; set; }

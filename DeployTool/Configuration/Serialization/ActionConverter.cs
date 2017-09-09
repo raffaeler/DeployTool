@@ -31,14 +31,14 @@ namespace DeployTool.Configuration
                 case "DotnetPublishAction":
                     return jo.ToObject<DotnetPublishAction>();
 
-                case "CopyToRemoteAction":
-                    return jo.ToObject<CopyToRemoteAction>();
+                case "SshCopyToRemoteAction":
+                    return jo.ToObject<SshCopyToRemoteAction>();
 
-                case "ExecuteCommandAction":
-                    return jo.ToObject<ExecuteCommandAction>();
+                case "SshRunCommandAction":
+                    return jo.ToObject<SshRunCommandAction>();
 
-                case "ExecuteRemoteAppAction":
-                    return jo.ToObject<ExecuteRemoteAppAction>();
+                case "SshRunAppAction":
+                    return jo.ToObject<SshRunAppAction>();
 
                 default:
                     throw new Exception($"Invalid action named {actionName}");

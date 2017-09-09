@@ -7,10 +7,10 @@ using DeployTool.Helpers;
 
 namespace DeployTool.Executers
 {
-    public class CopyToRemoteExecuter : ExecuterBase
+    public class SshCopyToRemoteExecuter : ExecuterBase
     {
-        private CopyToRemoteAction _action;
-        public CopyToRemoteExecuter(CopyToRemoteAction action)
+        private SshCopyToRemoteAction _action;
+        public SshCopyToRemoteExecuter(SshCopyToRemoteAction action)
         {
             _action = action;
         }
@@ -22,7 +22,7 @@ namespace DeployTool.Executers
 
             if (_action.DeleteRemoteFolder)
             {
-                transfer.RemoveRemoteFolderTree(_action.RemoteFolder);
+                transfer.SshRemoveRemoteFolderTree(_action.RemoteFolder);
             }
 
             foreach (var item in _action.LocalItems)
@@ -34,12 +34,12 @@ namespace DeployTool.Executers
 
                 if (attr.HasFlag(FileAttributes.Directory))
                 {
-                    transfer.CopyDirectoryToRemote(new DirectoryInfo(item), _action.RemoteFolder,
+                    transfer.SshCopyDirectoryToRemote(new DirectoryInfo(item), _action.RemoteFolder,
                         _action.Recurse, remoteExecutable);
                 }
                 else
                 {
-                    transfer.CopyFileToRemote(new FileInfo(item), _action.RemoteFolder);
+                    transfer.SshCopyFileToRemote(new FileInfo(item), _action.RemoteFolder);
                 }
             }
 

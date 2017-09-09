@@ -11,6 +11,8 @@ namespace DeployTool.Configuration
             ActionName = this.GetType().Name;
         }
 
+        public string GetShortActionName() => "DotnetPublish";
+
         /// <summary>
         /// The name of this action
         /// </summary>

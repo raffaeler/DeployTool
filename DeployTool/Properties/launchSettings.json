@@ -2,7 +2,7 @@
   "profiles": {
     "DeployTool": {
       "commandName": "Project",
-      "commandLineArgs": "create -f raf"
+      "commandLineArgs": "interact"
     }
   }
 }

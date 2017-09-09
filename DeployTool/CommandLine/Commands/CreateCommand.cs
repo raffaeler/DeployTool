@@ -9,6 +9,7 @@ namespace DeployTool.CommandLine
         public CreateCommand(string name) => this.Name = name;
 
         public string Filename { get; private set; }
+        public bool IsMinimal { get; private set; }
 
         public override void Add(CliOption option)
         {
@@ -20,6 +21,11 @@ namespace DeployTool.CommandLine
                 case "f":
                 case "file":
                     Filename = option.AssertSingleParameter();
+                    break;
+
+                case "m":
+                case "minimal":
+                    IsMinimal = true;
                     break;
             }
         }

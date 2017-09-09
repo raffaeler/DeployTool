@@ -3,51 +3,20 @@
   "Ssh": {
     "Host": "machine-name",
     "Username": "username",
-    "Password": "password",
-    "PrivateKeys": [
-      {
-        "PrivateKeyFile": "privatekeyfile.key",
-        "PassPhrase": "passphrase"
-      }
-    ],
-    "ProxyHost": "proxy-host",
-    "ProxyUsername": "proxy-username",
-    "ProxyPassword": "proxy-password"
+    "Password": "password"
   },
   "Actions": [
     {
       "ActionName": "DotnetPublishAction",
-      "OutputFolder": "publish-linux-arm",
       "RuntimeIdentifier": "linux-arm",
-      "TargetFramework": "netcoreapp2.0",
       "Configuration": "Release",
-      "VersionSuffix": "suffix",
-      "Manifest": "manifest.xml",
-      "IsSelfContained": true,
-      "IsNoRestore": false,
-      "Verbosity": "minimal",
-      "IsNoDependencies": false,
-      "IsForce": false
+      "IsSelfContained": true
     },
     {
-      "ActionName": "CopyToRemoteAction",
-      "LocalItems": [
-        null,
-        "sqlite.db"
-      ],
-      "RemoteFolder": "/temp",
+      "ActionName": "SshCopyToRemoteAction",
+      "RemoteFolder": "/dotnet-deploy",
       "DeleteRemoteFolder": true,
       "Recurse": true
-    },
-    {
-      "ActionName": "ExecuteCommandAction",
-      "Command": "ls"
-    },
-    {
-      "ActionName": "ExecuteRemoteAppAction",
-      "RemoteFolder": null,
-      "RemoteApp": null,
-      "Arguments": "hello"
     }
   ]
 }

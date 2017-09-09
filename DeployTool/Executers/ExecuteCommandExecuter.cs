@@ -6,10 +6,10 @@ using DeployTool.Helpers;
 
 namespace DeployTool.Executers
 {
-    public class ExecuteCommandExecuter : ExecuterBase
+    public class SshRunCommandExecuter : ExecuterBase
     {
-        private ExecuteCommandAction _action;
-        public ExecuteCommandExecuter(ExecuteCommandAction action)
+        private SshRunCommandAction _action;
+        public SshRunCommandExecuter(SshRunCommandAction action)
         {
             _action = action;
         }
@@ -19,7 +19,7 @@ namespace DeployTool.Executers
             if (!bag.GetSshOrFail(out SshConfiguration ssh)) return;
             var transfer = new SshTransfer(ssh);
 
-            var output = transfer.ExecuteRemoteCommand(_action.Command);
+            var output = transfer.SshRunCommand(_action.Command);
             bag.SetSuccess(output);
         }
     }

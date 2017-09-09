@@ -6,10 +6,10 @@ using DeployTool.Helpers;
 
 namespace DeployTool.Executers
 {
-    public class ExecuteRemoteAppExecuter : ExecuterBase
+    public class SshRunAppExecuter : ExecuterBase
     {
-        private ExecuteRemoteAppAction _action;
-        public ExecuteRemoteAppExecuter(ExecuteRemoteAppAction action)
+        private SshRunAppAction _action;
+        public SshRunAppExecuter(SshRunAppAction action)
         {
             _action = action;
         }
@@ -20,7 +20,7 @@ namespace DeployTool.Executers
             var transfer = new SshTransfer(ssh);
 
             var command = $"{_action.RemoteFolder}/{_action.RemoteApp} {_action.Arguments}";
-            var output = transfer.ExecuteRemoteCommand(command);
+            var output = transfer.SshRunCommand(command);
             bag.SetSuccess(output);
         }
     }

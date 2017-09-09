@@ -4,12 +4,14 @@ using System.Text;
 
 namespace DeployTool.Configuration
 {
-    public class CopyToRemoteAction : IAction
+    public class SshCopyToRemoteAction : IAction
     {
-        public CopyToRemoteAction()
+        public SshCopyToRemoteAction()
         {
             ActionName = this.GetType().Name;
         }
+
+        public string GetShortActionName() => "SshCopyToRemote";
 
         public string ActionName { get; }
         public string[] LocalItems { get; set; }

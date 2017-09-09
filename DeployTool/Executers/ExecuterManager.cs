@@ -47,17 +47,17 @@ namespace DeployTool.Executers
         {
             switch (action)
             {
-                case CopyToRemoteAction copyToRemoteAction:
-                    return new CopyToRemoteExecuter(copyToRemoteAction);
+                case SshCopyToRemoteAction sshCopyToRemoteAction:
+                    return new SshCopyToRemoteExecuter(sshCopyToRemoteAction);
 
                 case DotnetPublishAction dotnetPublishAction:
                     return new DotNetPublishExecuter(dotnetPublishAction);
 
-                case ExecuteCommandAction executeCommandAction:
-                    return new ExecuteCommandExecuter(executeCommandAction);
+                case SshRunCommandAction executeCommandAction:
+                    return new SshRunCommandExecuter(executeCommandAction);
 
-                case ExecuteRemoteAppAction executeRemoteAppAction:
-                    return new ExecuteRemoteAppExecuter(executeRemoteAppAction);
+                case SshRunAppAction executeAppAction:
+                    return new SshRunAppExecuter(executeAppAction);
 
                 default:
                     throw new Exception($"Unexpected action {action.GetType().Name}");
