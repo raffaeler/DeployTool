@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using DeployTool.Configuration;
+using DeployTool.Helpers;
 
 namespace DeployTool.Executers
 {
@@ -10,6 +11,7 @@ namespace DeployTool.Executers
         public static readonly string PublishDir = "$(publishdir)";
         public static readonly string ProjectDir = "$(projectdir)";
         public static readonly string ProjectName = "$(projectname)";
+        public static readonly string AssemblyName = "$(assemblyname)";
 
         public PipelineBag()
         {
@@ -22,7 +24,7 @@ namespace DeployTool.Executers
 
         public IDictionary<string, object> Bag { get; set; }
 
-        public bool GetSshOrFail(out SshConfiguration ssh)
+        public bool GetSshOrFail(out SshTransfer ssh)
         {
             if (!TryGet("ssh", out ssh))
             {
@@ -75,7 +77,7 @@ namespace DeployTool.Executers
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        public string Expand(string value)
+        public string Expand(string value, bool failIfNotFound)
         {
             if (string.IsNullOrEmpty(value)) return value;
             var sb = new StringBuilder(value.Length);
@@ -99,6 +101,13 @@ namespace DeployTool.Executers
                         if (TryGet(variable, out string variableValue))
                         {
                             sb.Append(variableValue);
+                        }
+                        else
+                        {
+                            if (failIfNotFound)
+                            {
+                                throw new Exception($"The variable {variable} cannot be found");
+                            }
                         }
 
                         temp.Clear();

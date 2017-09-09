@@ -29,8 +29,6 @@ namespace DeployTool
 
         private static void obsolete()
         {
-            var manager = new ExecuterManager();
-            //manager.Execute(deployConfiguration);
 
 
             DumpProject();

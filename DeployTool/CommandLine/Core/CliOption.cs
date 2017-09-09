@@ -5,7 +5,7 @@ using System.Text;
 
 namespace DeployTool
 {
-    public class CliOption// : ICliOption
+    public class CliOption
     {
         public CliOption()
         {

@@ -26,10 +26,13 @@ namespace DeployTool.Helpers
             }
 
             _projectFilename = projects.Single().FullName;
+            ProjectName = Path.GetFileNameWithoutExtension(_projectFilename);
+
             LoadXml();
         }
 
         public string AssemblyName { get; private set; }
+        public string ProjectName { get; private set; }
 
         private void LoadXml()
         {

@@ -17,30 +17,38 @@ namespace DeployTool.Executers
 
         public override void Execute(PipelineBag bag)
         {
-            if (!bag.GetSshOrFail(out SshConfiguration ssh)) return;
-            var transfer = new SshTransfer(ssh);
+            if (!bag.GetSshOrFail(out SshTransfer transfer)) return;
 
             if (_action.DeleteRemoteFolder)
             {
-                transfer.SshRemoveRemoteFolderTree(_action.RemoteFolder);
+                var expanded = _action.RemoteFolder.Expand(bag);
+                transfer.SshRemoveRemoteFolderTree(expanded);
             }
 
             foreach (var item in _action.LocalItems)
             {
-                FileAttributes attr = File.GetAttributes(item);
+                var expandedLocal = item.Expand(bag);
+                var expandedRemote = _action.RemoteFolder.Expand(bag);
+
+                FileAttributes attr = File.GetAttributes(expandedLocal);
 
                 // the name of the remote executable is the same of the project name
-                bag.TryGet("projectName", out string remoteExecutable);
+                bag.TryGet(PipelineBag.AssemblyName, out string remoteExecutable);
 
                 if (attr.HasFlag(FileAttributes.Directory))
                 {
-                    transfer.SshCopyDirectoryToRemote(new DirectoryInfo(item), _action.RemoteFolder,
+                    var result = transfer.SshCopyDirectoryToRemote(new DirectoryInfo(expandedLocal), expandedRemote,
                         _action.Recurse, remoteExecutable);
+                    bag.IsSuccess = !result.isError;
+                    bag.Output = result.output;
                 }
                 else
                 {
-                    transfer.SshCopyFileToRemote(new FileInfo(item), _action.RemoteFolder);
+                    var result = transfer.SshCopyFileToRemote(new FileInfo(expandedLocal), expandedRemote);
+                    bag.IsSuccess = !result.isError;
+                    bag.Output = result.output;
                 }
+
             }
 
         }

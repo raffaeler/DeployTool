@@ -28,9 +28,10 @@ namespace DeployTool
             Console.WriteLine("    Show this help");
             Console.WriteLine("");
             Console.WriteLine("Configuration variables:");
-            Console.WriteLine("  $(publishdir) \tThe output folder used by 'dotnet publish' (available only after that command)");
-            Console.WriteLine("  $(projectdir) \tThe full qualified folder where the csproj is located");
-            Console.WriteLine("  $(projectname)\tThe AssemblyName as read from the csproj file");
+            Console.WriteLine("  $(publishdir)  \tThe output folder used by 'dotnet publish' (available only after that command)");
+            Console.WriteLine("  $(projectdir)  \tThe full qualified folder where the csproj is located");
+            Console.WriteLine("  $(projectname) \tThe name of the csproj file (without extension)");
+            Console.WriteLine("  $(assemblyname)\tThe AssemblyName as read from the csproj file");
             Console.WriteLine("");
             return 0;
         }

@@ -16,11 +16,12 @@ namespace DeployTool.Executers
 
         public override void Execute(PipelineBag bag)
         {
-            if (!bag.GetSshOrFail(out SshConfiguration ssh)) return;
-            var transfer = new SshTransfer(ssh);
+            if (!bag.GetSshOrFail(out SshTransfer transfer)) return;
 
             var command = $"{_action.RemoteFolder}/{_action.RemoteApp} {_action.Arguments}";
-            var output = transfer.SshRunCommand(command);
+            var expanded = command.Expand(bag);
+
+            var output = transfer.SshRunCommand(expanded);
             bag.SetSuccess(output);
         }
     }

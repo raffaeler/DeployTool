@@ -7,9 +7,9 @@ namespace DeployTool.Helpers
 {
     public static class VariablesHelper
     {
-        public static string Expand(this string value, PipelineBag bag)
+        public static string Expand(this string value, PipelineBag bag, bool failIfNotFound = true)
         {
-            return bag.Expand(value);
+            return bag.Expand(value, failIfNotFound);
         }
     }
 }

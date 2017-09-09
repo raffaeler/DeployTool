@@ -12,6 +12,7 @@ namespace DeployTool
     internal partial class DeployApp
     {
         private ProjectHelper _project;
+        private ExecuterManager _executerManager;
 
         public DeployApp()
         {
@@ -24,9 +25,14 @@ namespace DeployTool
 
         public int ProcessCLI(string[] args)
         {
+            _executerManager = new ExecuterManager();
+
             _project = EnsureProjectFolder();
             var command = GetCommand(args);
             if (_project == null || command == null) return -1;
+
+            _executerManager.Bag.SetValue(PipelineBag.ProjectName, _project.ProjectName);
+            _executerManager.Bag.SetValue(PipelineBag.AssemblyName, _project.AssemblyName);
 
             switch (command)
             {
@@ -97,6 +103,5 @@ namespace DeployTool
 
             return null;
         }
-
     }
 }

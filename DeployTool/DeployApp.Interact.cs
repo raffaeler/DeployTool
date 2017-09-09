@@ -17,38 +17,19 @@ namespace DeployTool
             var di = new System.IO.DirectoryInfo(System.IO.Directory.GetCurrentDirectory());
             var files = di
                 .GetFiles($"*.{Constants.DeployExtension}")
-                .Select(f => GetTitle(f))
-                .OrderBy(n => n)
+                .OrderBy(n => n.Name)
                 .ToArray();
 
-            string current;
+            System.IO.FileInfo current;
             while ((current = ConsoleManager.RunLoop("Select a configuration file or 'q' to quit", files)) != null)
             {
-                var config = ReadConfiguration(current);
+                var config = ReadConfiguration(current.FullName);
                 ProcessConfiguration(config);
             }
 
             return 0;
         }
 
-        private string GetTitle(System.IO.FileInfo fileInfo)
-        {
-            var simpleName = System.IO.Path.GetFileNameWithoutExtension(fileInfo.Name);
-            var content = System.IO.File.ReadAllText(fileInfo.FullName);
-            var config = JsonHelper.Deserialize(content);
-            if (config == null || config.Description == null)
-            {
-                return simpleName;
-            }
-
-            var actions = string.Join(", ", config.Actions.Select(a => a.GetShortActionName()));
-            if (string.IsNullOrEmpty(actions))
-            {
-                return $"{simpleName} ({config.Description}: no actions)";
-            }
-
-            return $"{simpleName} ({config.Description}: {actions})";
-        }
 
 
     }

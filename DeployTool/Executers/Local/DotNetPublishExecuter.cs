@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using DeployTool.Configuration;
+using DeployTool.Helpers;
 
 namespace DeployTool.Executers
 {
@@ -22,15 +23,17 @@ namespace DeployTool.Executers
 
         public override void Execute(PipelineBag bag)
         {
-            string output = base.ExecuteAndWait(_action.GetDotnetCommand(), out bool isError);
+            var projectName = PipelineBag.ProjectName.Expand(bag);
+            var command = _action.GetDotnetCommand().Expand(bag);
+            string output = base.ExecuteAndWait(command, out bool isError);
+            bag.SetResult(isError, output);
 
             if (isError)
             {
-                bag.SetError(output);
                 return;
             }
 
-            var infos = FindFolders(output);
+            var infos = FindFolders(output, projectName);
             if (infos.Length == 0)
             {
                 bag.SetError(output);
@@ -39,17 +42,17 @@ namespace DeployTool.Executers
 
             var info = infos.Single();
 
-            bag.SetValue("projectName", info.project);
-            bag.SetValue("projectFolder", info.folder);
+            bag.SetValue(PipelineBag.ProjectName, info.project);
+            bag.SetValue(PipelineBag.PublishDir, info.folder);
         }
 
-        private (string project, string folder)[] FindFolders(string output)
+        private (string project, string folder)[] FindFolders(string output, string projectName)
         {
             var collection = Regex.Matches(output, ResultExpr, RegexOptions.Multiline);
             var result = collection
                 .Where(x => x.Groups.Count >= MaxGroup && x.Groups[ProjectGroup].Success && x.Groups[FolderGroup].Success)
                 .Select(x => (x.Groups[ProjectGroup].Value, x.Groups[FolderGroup].Value))
-                .Where(t => t.Item2.EndsWith(@"\"))
+                .Where(t => string.Compare(t.Item1, projectName, true) == 0 && t.Item2.EndsWith(@"\"))
                 .ToArray();
 
             return result;

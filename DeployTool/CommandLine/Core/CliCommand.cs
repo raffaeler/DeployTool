@@ -87,6 +87,5 @@ namespace DeployTool
         {
             return $"CliCommand {Name}:{string.Join(",", Options)}";
         }
-
     }
 }

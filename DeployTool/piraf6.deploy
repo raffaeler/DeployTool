@@ -1,9 +1,9 @@
 {
   "Description": "Test",
   "Ssh": {
-    "Host": "colibri-t30",
-    "Username": "root",
-    "Password": null
+    "Host": "piraf6",
+    "Username": "pi",
+    "Password": "raspberry"
   },
   "Actions": [
     {
@@ -13,7 +13,10 @@
     },
     {
       "ActionName": "SshCopyToRemoteAction",
-      "RemoteFolder": "/dotnet-deploy",
+      "LocalItems": [
+        "$(publishdir)"
+      ],
+      "RemoteFolder": "/home/pi/$(projectname)",
       "DeleteRemoteFolder": true,
       "Recurse": true
     }

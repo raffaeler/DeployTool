@@ -19,9 +19,7 @@ namespace DeployTool
 
         private int ProcessConfiguration(DeployConfiguration deployConfiguration)
         {
-
-            return 0;
+            return _executerManager.Execute(deployConfiguration);
         }
-
     }
 }

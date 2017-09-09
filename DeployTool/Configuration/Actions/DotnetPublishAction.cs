@@ -90,20 +90,8 @@ namespace DeployTool.Configuration
         /// </summary>
         public bool IsForce { get; set; }
 
-        //public string GetConstructedOutputFolder()
-        //{
-        //    if (!string.IsNullOrEmpty(OutputFolder))
-        //    {
-        //        return OutputFolder;
-        //    }
-
-
-        //}
-
         public string GetDotnetCommand()
         {
-            //FillDefaults();
-
             var sb = new StringBuilder();
             sb.Append("publish ");
             AddIfAvailable(sb, "-o", OutputFolder);
@@ -119,14 +107,6 @@ namespace DeployTool.Configuration
             AddIfAvailable(sb, "--force", IsForce);
             return sb.ToString();
         }
-
-        //private void FillDefaults()
-        //{
-        //    if (string.IsNullOrEmpty(Configuration))
-        //    {
-        //        Configuration = "Debug";
-        //    }
-        //}
 
         private void AddIfAvailable(StringBuilder sb, string option, string value)
         {
@@ -151,6 +131,5 @@ namespace DeployTool.Configuration
                 sb.Append($"{option}={value} ");
             }
         }
-
     }
 }

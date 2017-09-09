@@ -13,7 +13,10 @@
     },
     {
       "ActionName": "SshCopyToRemoteAction",
-      "RemoteFolder": "/dotnet-deploy",
+      "LocalItems": [
+        "$(publishdir)"
+      ],
+      "RemoteFolder": "/$(projectname)",
       "DeleteRemoteFolder": true,
       "Recurse": true
     }

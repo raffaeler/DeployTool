@@ -12,6 +12,13 @@ namespace DeployTool.Helpers
     public class SshTransfer
     {
         private ConnectionInfo _connectionInfo;
+        private string _lastError;
+        private long _totalsize;
+        private long _relativesize;
+        private long _lastFileSize;
+        private long _lastFilePartial;
+        private string _lastFile;
+        private int _cursorTop;
 
         public SshTransfer(SshConfiguration configuration)
         {
@@ -70,7 +77,7 @@ namespace DeployTool.Helpers
             }
         }
 
-        public void SshCopyFileToRemote(FileInfo fileInfo, string remoteFolder)
+        public (bool isError, string output) SshCopyFileToRemote(FileInfo fileInfo, string remoteFolder)
         {
             SshCreateRemoteFolder(remoteFolder);
             var remoteFile = $"{remoteFolder.TrimEnd('/')}/{fileInfo.Name}";
@@ -79,24 +86,33 @@ namespace DeployTool.Helpers
             {
                 client.Connect();
                 client.Uploading += Client_Uploading;
-                client.Downloading += Client_Downloading;
+                //client.Downloading += Client_Downloading;
+                client.ErrorOccurred += Client_ErrorOccurred;
+
+                var state = ConsoleManager.GetConsoleState();
+                _cursorTop = state.Top;
+                ConsoleManager.ClearLine(state.Top);
 
                 try
                 {
                     client.Upload(fileInfo, remoteFile);
+                    if (!string.IsNullOrEmpty(_lastError)) return (true, _lastError);
                 }
                 finally
                 {
+                    client.ErrorOccurred -= Client_ErrorOccurred;
                     client.Uploading -= Client_Uploading;
-                    client.Downloading -= Client_Downloading;
-                    client.Disconnect();
+                    //client.Downloading -= Client_Downloading;
+                    //client.Disconnect();
                 }
             }
+
+            return (false, "Upload ok");
         }
 
         public void SshCreateRemoteFolder(string remoteFolder)
         {
-            if (!remoteFolder.StartsWith("/") || !remoteFolder.StartsWith("~"))
+            if (!remoteFolder.StartsWith("/") && !remoteFolder.StartsWith("~"))
             {
                 throw new Exception($"RemoveRemote: The remote folder must be absolute. The request was instead: ({remoteFolder})");
             }
@@ -117,28 +133,41 @@ namespace DeployTool.Helpers
                 }
                 finally
                 {
-                    client.Disconnect();
+                    //client.Disconnect();
                 }
             }
         }
 
-        public void SshCopyDirectoryToRemote(DirectoryInfo localFolder, string remoteFolder, bool recurse, string remoteExecutable = null)
+        public (bool isError, string output) SshCopyDirectoryToRemote(DirectoryInfo localFolder, string remoteFolder, bool recurse, string remoteExecutable = null)
         {
+            _lastError = null;
+            ResetProgress(localFolder.GetSize());
+            _relativesize = 0;
+
             using (var client = new ScpClient(_connectionInfo))
             {
                 client.Connect();
                 client.Uploading += Client_Uploading;
-                client.Downloading += Client_Downloading;
+                //client.Downloading += Client_Downloading;
+                client.ErrorOccurred += Client_ErrorOccurred;
+
+                var state = ConsoleManager.GetConsoleState();
+                _cursorTop = state.Top;
+                ConsoleManager.ClearLine(state.Top);
 
                 try
                 {
                     client.Upload(localFolder, remoteFolder);
+                    if (!string.IsNullOrEmpty(_lastError)) return (true, _lastError);
                 }
                 finally
                 {
+                    state.Top = Console.CursorTop + 1;
+                    ConsoleManager.SetConsoleState(state);
+                    client.ErrorOccurred -= Client_ErrorOccurred;
                     client.Uploading -= Client_Uploading;
-                    client.Downloading -= Client_Downloading;
-                    client.Disconnect();
+                    //client.Downloading -= Client_Downloading;
+                    //client.Disconnect();
                 }
             }
 
@@ -150,19 +179,25 @@ namespace DeployTool.Helpers
                     try
                     {
                         client.Connect();
+                        client.ErrorOccurred += Client_ErrorOccurred;
                         client.ChangePermissions(remoteFullExecutable, 755);
+                        if (!string.IsNullOrEmpty(_lastError)) return (true, _lastError);
                     }
                     finally
                     {
-                        client.Disconnect();
+                        client.ErrorOccurred -= Client_ErrorOccurred;
+                        //client.Disconnect();
                     }
                 }
             }
+
+            return (false, "Upload + Permission ok");
         }
 
-        public void SshRemoveRemoteFolderTree(string remoteFolder)
+
+        public (bool isError, string output) SshRemoveRemoteFolderTree(string remoteFolder)
         {
-            if (!remoteFolder.StartsWith("/") || !remoteFolder.StartsWith("~"))
+            if (!remoteFolder.StartsWith("/") && !remoteFolder.StartsWith("~"))
             {
                 throw new Exception($"RemoveRemote: The remote folder must be absolute. The request was instead: ({remoteFolder})");
             }
@@ -183,11 +218,18 @@ namespace DeployTool.Helpers
                 {
                     client.Connect();
                     var command = client.CreateCommand($"rm -rf {remoteFolder}");
-                    command.Execute();
+                    var output1 = command.Execute();
+                    var output = command.Result;
+                    if (!string.IsNullOrEmpty(command.Error))
+                    {
+                        return (true, command.Error);
+                    }
+
+                    return (false, output);
                 }
                 finally
                 {
-                    client.Disconnect();
+                    //client.Disconnect();
                 }
             }
         }
@@ -205,7 +247,7 @@ namespace DeployTool.Helpers
                 }
                 finally
                 {
-                    client.Disconnect();
+                    //client.Disconnect();
                 }
             }
         }
@@ -239,12 +281,47 @@ namespace DeployTool.Helpers
 
         private void Client_Downloading(object sender, Renci.SshNet.Common.ScpDownloadEventArgs e)
         {
-            Console.WriteLine($"{e.Filename} -> {e.Downloaded}");
+            UpdateProgress(e.Filename, e.Size, e.Downloaded);
         }
 
         private void Client_Uploading(object sender, Renci.SshNet.Common.ScpUploadEventArgs e)
         {
-            Console.WriteLine($"{e.Filename} -> {e.Uploaded}");
+            UpdateProgress(e.Filename, e.Size, e.Uploaded);
+        }
+
+        private void ResetProgress(long totalSize)
+        {
+            _lastFile = null;
+            _lastFileSize = 0;
+            _lastFilePartial = 0;
+            _relativesize = 0;
+            _totalsize = totalSize;
+        }
+
+        private void UpdateProgress(string filename, long size, long partial)
+        {
+            if (_lastFile != filename)
+            {
+                _lastFilePartial = 0;
+
+                //_relativesize += _lastFileSize;
+                //_lastFileSize = size;
+                _lastFile = filename;
+            }
+
+            var delta = partial - _lastFilePartial;
+            _lastFilePartial = partial;
+            _relativesize += delta;
+
+            var percent = _relativesize * 100 / _totalsize;
+            var msg = $"{percent}% {filename} ";
+            var filler = new string(' ', Console.WindowWidth - msg.Length-1);
+            ConsoleManager.WriteAt(0, _cursorTop, msg + filler);
+        }
+
+        private void Client_ErrorOccurred(object sender, Renci.SshNet.Common.ExceptionEventArgs e)
+        {
+            var _lastError = e.Exception.Message;
         }
 
         private PrivateKeyFile Load(string privateKeyFile, string passphrase)

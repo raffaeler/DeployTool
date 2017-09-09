@@ -91,8 +91,8 @@ namespace DeployTool
                     {
                         DeleteRemoteFolder = true,
                         Recurse = true,
-                        RemoteFolder = "/temp",
-                        LocalItems = new [] { null, "sqlite.db" },
+                        RemoteFolder = $"/{PipelineBag.ProjectName}",
+                        LocalItems = new [] { PipelineBag.PublishDir, "sqlite.db" },
                     },
 
                     new SshRunCommandAction()
@@ -103,8 +103,8 @@ namespace DeployTool
                     new SshRunAppAction()
                     {
                         Arguments = "hello",
-                        RemoteFolder = null,
-                        RemoteApp = null,
+                        RemoteFolder = $"/{PipelineBag.ProjectName}",
+                        RemoteApp = $"{PipelineBag.AssemblyName}",
                     },
                 },
             };
@@ -138,8 +138,8 @@ namespace DeployTool
                     {
                         DeleteRemoteFolder = true,
                         Recurse = true,
-                        RemoteFolder = $"/{_project.AssemblyName.ToLower()}",
-                        LocalItems = null,
+                        RemoteFolder = $"/{PipelineBag.ProjectName}",
+                        LocalItems = new [] { PipelineBag.PublishDir },
                     },
                 },
             };

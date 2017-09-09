@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Text;
+using DeployTool.Configuration;
 
 namespace DeployTool.Helpers
 {
@@ -14,24 +17,82 @@ namespace DeployTool.Helpers
             Console.Clear();
         }
 
-        public static void WriteError(string message)
+        public static ConsoleState GetConsoleState()
         {
-            var current = Console.ForegroundColor;
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine(message);
-            Console.ForegroundColor = current;
+            var left = Console.CursorLeft;
+            var top = Console.CursorTop;
+            return new ConsoleState(left, top);
         }
 
-        public static string RunLoop(string heading, string[] items)
+        public static void SetConsoleState(ConsoleState state)
+        {
+            Console.CursorLeft = state.Left;
+            Console.CursorTop = state.Top;
+        }
+
+        public static void WriteAt(int left, int top, string message)
+        {
+            Console.CursorLeft = left;
+            Console.CursorTop = top;
+            Console.Write(message);
+        }
+
+        public static void ClearLine(int top)
+        {
+            Console.CursorLeft = 0;
+            Console.CursorTop = top;
+            var width = Console.WindowWidth;
+            Console.Write(new string(' ', width));
+        }
+
+        public static void WriteSuccess(string message)
+        {
+            var currentFore = Console.ForegroundColor;
+            var currentBack = Console.BackgroundColor;
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.BackgroundColor = ConsoleColor.Black;
+            Console.WriteLine(message);
+            Console.ForegroundColor = currentFore;
+            Console.BackgroundColor = currentBack;
+        }
+
+        public static void WriteUnkOutput(string message)
+        {
+            var currentFore = Console.ForegroundColor;
+            var currentBack = Console.BackgroundColor;
+            Console.ForegroundColor = ConsoleColor.Magenta;
+            Console.BackgroundColor = ConsoleColor.Black;
+            Console.WriteLine(message);
+            Console.ForegroundColor = currentFore;
+            Console.BackgroundColor = currentBack;
+        }
+
+        public static void WriteError(string message)
+        {
+            var currentFore = Console.ForegroundColor;
+            var currentBack = Console.BackgroundColor;
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.BackgroundColor = ConsoleColor.Black;
+            Console.WriteLine(message);
+            Console.ForegroundColor = currentFore;
+            Console.BackgroundColor = currentBack;
+        }
+
+        public static FileInfo RunLoop(string heading, FileInfo[] items)
         {
             Console.BackgroundColor = ConsoleColor.DarkRed;
             ConsoleKey key;
             int currentPage = 0;
             int maxPage = items.Length / 9 + (items.Length % 9 == 0 ? 0 : 1);
 
+            var texts = items
+                .Select(f => GetTitle(f))
+                .OrderBy(n => n)
+                .ToArray();
+
             do
             {
-                Clear(heading, items, currentPage, maxPage);
+                Clear(heading, texts, currentPage, maxPage);
 
                 var keyInfo = Console.ReadKey(true);
                 key = keyInfo.Key;
@@ -73,6 +134,25 @@ namespace DeployTool.Helpers
             while (key != ConsoleKey.Q);
 
             return null;
+        }
+
+        private static string GetTitle(System.IO.FileInfo fileInfo)
+        {
+            var simpleName = System.IO.Path.GetFileNameWithoutExtension(fileInfo.Name);
+            var content = System.IO.File.ReadAllText(fileInfo.FullName);
+            var config = JsonHelper.Deserialize(content);
+            if (config == null || config.Description == null)
+            {
+                return simpleName;
+            }
+
+            var actions = string.Join(", ", config.Actions.Select(a => a.GetShortActionName()));
+            if (string.IsNullOrEmpty(actions))
+            {
+                return $"{simpleName} ({config.Description}: no actions)";
+            }
+
+            return $"{simpleName} ({config.Description}: {actions})";
         }
 
         private static int GetKey(ConsoleKey key)
@@ -119,6 +199,16 @@ namespace DeployTool.Helpers
             }
         }
 
+        public class ConsoleState
+        {
+            public ConsoleState(int left, int top)
+            {
+                this.Left = left;
+                this.Top = top;
+            }
 
+            public int Left { get; set; }
+            public int Top { get; set; }
+        }
     }
 }
