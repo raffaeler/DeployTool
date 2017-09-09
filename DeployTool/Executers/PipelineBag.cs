@@ -7,12 +7,16 @@ namespace DeployTool.Executers
 {
     public class PipelineBag
     {
+        public static readonly string PublishDir = "$(publishdir)";
+        public static readonly string ProjectDir = "$(projectdir)";
+        public static readonly string ProjectName = "$(projectname)";
+
         public PipelineBag()
         {
             Bag = new Dictionary<string, object>();
         }
 
-        public bool IsSuccess { get; set; }
+        public bool? IsSuccess { get; set; }
 
         public string Output { get; set; }
 
@@ -62,6 +66,75 @@ namespace DeployTool.Executers
         {
             IsSuccess = false;
             this.Output = output;
+        }
+
+        /// <summary>
+        /// Expand the variables inside the string
+        /// If there is no value for a variable, the variable is removed
+        /// The values for the variables are taken from the bag
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public string Expand(string value)
+        {
+            if (string.IsNullOrEmpty(value)) return value;
+            var sb = new StringBuilder(value.Length);
+            var temp = new StringBuilder(value.Length);
+            bool isMark1 = false;
+            bool isMark2 = false;
+            char Mark1 = '$';
+            char Mark2 = '(';
+            char Mark3 = ')';
+
+            foreach (var ch in value)
+            {
+                if (isMark2)
+                {
+                    temp.Append(ch);
+                    if (ch == Mark3)
+                    {
+                        isMark2 = false;
+                        // compare with known vars
+                        var variable = temp.ToString();
+                        if (TryGet(variable, out string variableValue))
+                        {
+                            sb.Append(variableValue);
+                        }
+
+                        temp.Clear();
+                    }
+
+                    continue;
+                }
+
+                if (isMark1)
+                {
+                    if (ch == Mark2)
+                    {
+                        temp.Append(ch);
+                        isMark2 = true;
+                        continue;
+                    }
+
+                    isMark1 = false;
+                    sb.Append(temp.ToString());
+                    temp.Clear();
+                }
+
+                if (ch == Mark1)
+                {
+                    isMark1 = true;
+                    temp.Append(ch);
+                    continue;
+                }
+
+                sb.Append(ch);
+            }
+
+            if (temp.Length > 0)
+                sb.Append(temp.ToString());
+
+            return sb.ToString();
         }
     }
 }

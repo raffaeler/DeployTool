@@ -18,23 +18,22 @@ namespace DeployTool
 {
     class Program
     {
-        private ProjectHelper _project;
+        private static DeployApp _app;
+
         static void Main(string[] args)
         {
-            //CliCommandFactory.Instance.Register(x => new WatchCommand(x), "watch");
-            CliCommandFactory.Instance.Register(x => new CreateCommand(x), "create");
-            CliCommandFactory.Instance.Register(x => new RunCommand(x), "run");
-            CliCommandFactory.Instance.Register(x => new InteractCommand(x), "interact");
-            CliCommandFactory.Instance.Register(x => new HelpCommand(x), "help");
+            _app = new DeployApp();
 
-            Program p = new Program();
+            _app.ProcessCLI(args);
+        }
 
-            p.ProcessCLI(args);
-            return;
+        private static void obsolete()
+        {
+            var manager = new ExecuterManager();
+            //manager.Execute(deployConfiguration);
 
 
-            BuildConfig();
-            //DumpProject();
+            DumpProject();
 
 
             var config = new SshConfiguration();
@@ -62,13 +61,6 @@ namespace DeployTool
             Console.WriteLine("Hello World!");
         }
 
-        private static void BuildConfig()
-        {
-
-            var manager = new ExecuterManager();
-            //manager.Execute(deployConfiguration);
-        }
-
         private static void DumpProject()
         {
             var command = new DotnetPublishAction();
@@ -81,286 +73,6 @@ namespace DeployTool
             //executer.ExecuteAndWait();
         }
 
-        private int ProcessCLI(string[] args)
-        {
-            _project = EnsureProjectFolder();
-            var command = GetCommand(args);
-            if (_project == null || command == null) return -1;
-
-            switch (command)
-            {
-                case HelpCommand helpCommand:
-                    return ProcessHelpCommand(helpCommand);
-
-                case CreateCommand createCommand:
-                    return ProcessCreateCommand(createCommand);
-
-                case InteractCommand interactCommand:
-                    return ProcessInteractCommand(interactCommand);
-
-                case RunCommand runCommand:
-                    return ProcessRunCommand(runCommand);
-
-                default:
-                    Console.WriteLine($"Unknown command {command.Name}");
-                    return -1;
-            }
-        }
-
-        private int ProcessHelpCommand(HelpCommand helpCommand)
-        {
-            Console.WriteLine("dotnet deploy tool v1.0 by @raffaeler (https://github.com/raffaeler/DeployTool)");
-            Console.WriteLine("");
-            Console.WriteLine("dotnet deploy create -f <filename>.deploy");
-            Console.WriteLine("    Create a new configuration file with sample data");
-            Console.WriteLine("");
-            Console.WriteLine("dotnet deploy run -f <filename>.deploy");
-            Console.WriteLine("    Process the actions described in the configuration file");
-            Console.WriteLine("");
-            Console.WriteLine("dotnet deploy interact");
-            Console.WriteLine("    Show an interactive menu allowing to process/run the desired configuration");
-            Console.WriteLine("");
-            Console.WriteLine("dotnet deploy help");
-            Console.WriteLine("    Show this help");
-            Console.WriteLine("");
-            return 0;
-        }
-
-        private int ProcessCreateCommand(CreateCommand createCommand)
-        {
-            var extension = "." + Constants.DeployExtension;
-            string filename = createCommand.Filename;
-            if (!createCommand.Filename.EndsWith(extension, StringComparison.CurrentCultureIgnoreCase))
-            {
-                filename = createCommand.Filename + extension;
-            }
-
-            DeployConfiguration deployConfiguration;
-            if(createCommand.IsMinimal)
-            {
-                deployConfiguration = CreateMinimalisticSampleConfiguration();
-            }
-            else
-            {
-                deployConfiguration = CreateSampleConfiguration();
-            }
-
-            var serialized = JsonHelper.Serialize(deployConfiguration);
-            try
-            {
-                System.IO.File.WriteAllText(filename, serialized);
-            }
-            catch (Exception err)
-            {
-                ConsoleManager.WriteError($"Error writing the configuration file: {err.Message}");
-            }
-
-            return 0;
-        }
-
-        private int ProcessInteractCommand(InteractCommand interactCommand)
-        {
-            var di = new System.IO.DirectoryInfo(System.IO.Directory.GetCurrentDirectory());
-            var files = di
-                .GetFiles($"*.{Constants.DeployExtension}")
-                .Select(f => GetTitle(f))
-                .OrderBy(n => n)
-                .ToArray();
-
-            string current;
-            while ((current = ConsoleManager.RunLoop("Select a configuration file or 'q' to quit", files)) != null)
-            {
-                var config = ReadConfiguration(current);
-                ProcessConfiguration(config);
-            }
-
-            return 0;
-        }
-
-        private string GetTitle(System.IO.FileInfo fileInfo)
-        {
-            var simpleName = System.IO.Path.GetFileNameWithoutExtension(fileInfo.Name);
-            var content = System.IO.File.ReadAllText(fileInfo.FullName);
-            var config = JsonHelper.Deserialize(content);
-            if (config == null || config.Description == null)
-            {
-                return simpleName;
-            }
-
-            var actions = string.Join(", ", config.Actions.Select(a => a.GetShortActionName()));
-            if (string.IsNullOrEmpty(actions))
-            {
-                return $"{simpleName} ({config.Description}: no actions)";
-            }
-
-            return $"{simpleName} ({config.Description}: {actions})";
-        }
-
-        private int ProcessRunCommand(RunCommand runCommand)
-        {
-            var config = ReadConfiguration(runCommand.Filename);
-            return ProcessConfiguration(config);
-        }
-
-        private int ProcessConfiguration(DeployConfiguration deployConfiguration)
-        {
-
-            return 0;
-        }
-
-        private DeployConfiguration ReadConfiguration(string filename)
-        {
-            try
-            {
-                var content = System.IO.File.ReadAllText(filename);
-                var config = JsonHelper.Deserialize(content);
-                return config;
-            }
-            catch (Exception err)
-            {
-                Console.WriteLine(err.Message);
-            }
-
-            return null;
-        }
-
-        private ProjectHelper EnsureProjectFolder()
-        {
-            ProjectHelper project = null;
-            try
-            {
-                project = new ProjectHelper();
-            }
-            catch (Exception err)
-            {
-                ConsoleManager.WriteError(err.Message);
-            }
-
-            return project;
-        }
-
-        private ICliCommand GetCommand(string[] args)
-        {
-            ICliCommand command = null;
-            try
-            {
-                command = CliCommand.FromArgs(CliCommandFactory.Instance, args);
-                if (command == null)
-                {
-                    command = CliCommandFactory.Instance.Create("help");
-                }
-            }
-            catch (Exception err)
-            {
-                ConsoleManager.WriteError(err.Message);
-            }
-
-            return command;
-        }
-
-        private DeployConfiguration CreateSampleConfiguration()
-        {
-            var deployConfiguration = new DeployConfiguration()
-            {
-                Description = "Test",
-
-                Ssh = new SshConfiguration()
-                {
-                    Host = "machine-name",
-                    Username = "username",
-                    Password = "password",
-                    Port = 22,
-                    ProxyHost = "proxy-host",
-                    ProxyUsername = "proxy-username",
-                    ProxyPassword = "proxy-password",
-                    ProxyPort = 8080,
-                    PrivateKeys = new PrivateKeyData[]
-                    {
-                        new PrivateKeyData()
-                        {
-                            PrivateKeyFile = "privatekeyfile.key",
-                            PassPhrase = "passphrase",
-                        },
-                    }
-                },
-
-                Actions = new List<IAction>()
-                {
-                    new DotnetPublishAction()
-                    {
-                        Configuration = "Release",
-                        IsSelfContained = true,
-                        RuntimeIdentifier = "linux-arm",
-
-                        OutputFolder = "publish-linux-arm",
-                        IsForce = false,
-                        IsNoDependencies = false,
-                        IsNoRestore = false,
-                        Manifest = "manifest.xml",
-                        TargetFramework = "netcoreapp2.0",
-                        Verbosity = "minimal",
-                        VersionSuffix = "suffix",
-                    },
-
-                    new SshCopyToRemoteAction()
-                    {
-                        DeleteRemoteFolder = true,
-                        Recurse = true,
-                        RemoteFolder = "/temp",
-                        LocalItems = new [] { null, "sqlite.db" },
-                    },
-
-                    new SshRunCommandAction()
-                    {
-                        Command = "ls",
-                    },
-
-                    new SshRunAppAction()
-                    {
-                        Arguments = "hello",
-                        RemoteFolder = null,
-                        RemoteApp = null,
-                    },
-                },
-            };
-
-            return deployConfiguration;
-        }
-
-        private DeployConfiguration CreateMinimalisticSampleConfiguration()
-        {
-            var deployConfiguration = new DeployConfiguration()
-            {
-                Description = "Test",
-
-                Ssh = new SshConfiguration()
-                {
-                    Host = "machine-name",
-                    Username = "username",
-                    Password = "password",
-                },
-
-                Actions = new List<IAction>()
-                {
-                    new DotnetPublishAction()
-                    {
-                        Configuration = "Release",
-                        IsSelfContained = true,
-                        RuntimeIdentifier = "linux-arm",
-                    },
-
-                    new SshCopyToRemoteAction()
-                    {
-                        DeleteRemoteFolder = true,
-                        Recurse = true,
-                        RemoteFolder = $"/{_project.AssemblyName.ToLower()}",
-                        LocalItems = null,
-                    },
-                },
-            };
-
-            return deployConfiguration;
-        }
 
     }
 

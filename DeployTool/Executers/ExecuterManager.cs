@@ -24,23 +24,60 @@ namespace DeployTool.Executers
 
             foreach (var action in deployConfiguration.Actions)
             {
+                Console.WriteLine();
+                Console.WriteLine(action.ActionName);
                 var executer = GetExecuter(action);
                 executer.Execute(Bag);
-                if (!Bag.IsSuccess)
+                if (!Bag.IsSuccess.HasValue)
+                {
+                    WriteUnkOutput(Bag.Output);
+                    continue;
+                }
+
+                if (!Bag.IsSuccess.Value)
                 {
 
                     WriteError($"Error: {Bag.Output}");
                     break;
                 }
+
+                WriteSuccess(Bag.Output);
             }
+
+            Console.WriteLine();
+        }
+
+        private void WriteSuccess(string message)
+        {
+            var currentFore = Console.ForegroundColor;
+            var currentBack = Console.BackgroundColor;
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.BackgroundColor = ConsoleColor.Black;
+            Console.WriteLine(message);
+            Console.ForegroundColor = currentFore;
+            Console.BackgroundColor = currentBack;
+        }
+
+        private void WriteUnkOutput(string message)
+        {
+            var currentFore = Console.ForegroundColor;
+            var currentBack = Console.BackgroundColor;
+            Console.ForegroundColor = ConsoleColor.Magenta;
+            Console.BackgroundColor = ConsoleColor.Yellow;
+            Console.WriteLine(message);
+            Console.ForegroundColor = currentFore;
+            Console.BackgroundColor = currentBack;
         }
 
         private void WriteError(string message)
         {
-            var current = Console.ForegroundColor;
+            var currentFore = Console.ForegroundColor;
+            var currentBack = Console.BackgroundColor;
             Console.ForegroundColor = ConsoleColor.Red;
+            Console.BackgroundColor = ConsoleColor.Yellow;
             Console.WriteLine(message);
-            Console.ForegroundColor = current;
+            Console.ForegroundColor = currentFore;
+            Console.BackgroundColor = currentBack;
         }
 
         private ExecuterBase GetExecuter(IAction action)

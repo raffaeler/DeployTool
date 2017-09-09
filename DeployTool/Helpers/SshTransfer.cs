@@ -96,7 +96,7 @@ namespace DeployTool.Helpers
 
         public void SshCreateRemoteFolder(string remoteFolder)
         {
-            if (!remoteFolder.StartsWith("/"))
+            if (!remoteFolder.StartsWith("/") || !remoteFolder.StartsWith("~"))
             {
                 throw new Exception($"RemoveRemote: The remote folder must be absolute. The request was instead: ({remoteFolder})");
             }
@@ -108,7 +108,7 @@ namespace DeployTool.Helpers
                 try
                 {
                     client.Connect();
-                    string root = "/";
+                    string root = remoteFolder.StartsWith('~') ? "" : "/";
                     foreach (var folder in remoteFolders)
                     {
                         root += folder + "/";
@@ -162,9 +162,19 @@ namespace DeployTool.Helpers
 
         public void SshRemoveRemoteFolderTree(string remoteFolder)
         {
-            if (!remoteFolder.StartsWith("/"))
+            if (!remoteFolder.StartsWith("/") || !remoteFolder.StartsWith("~"))
             {
                 throw new Exception($"RemoveRemote: The remote folder must be absolute. The request was instead: ({remoteFolder})");
+            }
+
+            if (remoteFolder == "/")
+            {
+                throw new Exception("RemoteRemote: Removing '/' can do huge damages... exiting");
+            }
+
+            if (remoteFolder == "~")
+            {
+                throw new Exception("RemoteRemote: Removing home ('~') can do huge damages... exiting");
             }
 
             using (var client = new SshClient(_connectionInfo))
