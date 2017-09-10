@@ -14,16 +14,6 @@ namespace DeployTool.Helpers
         private ConnectionInfo _connectionInfo;
         private string _lastError;
         private SshProgress _progress;
-        //private long _lastFileSize;
-
-        //private long _totalsize;
-        //private long _relativesize;
-        //private long _lastFilePartial;
-
-        //private long _totalAmount;
-        //private long _currentFile;
-
-        //private string _lastFile;
         private int _cursorTop;
 
         public SshTransfer(SshConfiguration configuration)
@@ -93,7 +83,6 @@ namespace DeployTool.Helpers
             {
                 client.Connect();
                 client.Uploading += Client_Uploading;
-                //client.Downloading += Client_Downloading;
                 client.ErrorOccurred += Client_ErrorOccurred;
 
                 var state = ConsoleManager.GetConsoleState();
@@ -110,8 +99,6 @@ namespace DeployTool.Helpers
                 {
                     client.ErrorOccurred -= Client_ErrorOccurred;
                     client.Uploading -= Client_Uploading;
-                    //client.Downloading -= Client_Downloading;
-                    //client.Disconnect();
                 }
             }
 
@@ -141,7 +128,6 @@ namespace DeployTool.Helpers
                 }
                 finally
                 {
-                    //client.Disconnect();
                 }
             }
         }
@@ -156,7 +142,6 @@ namespace DeployTool.Helpers
             {
                 client.Connect();
                 client.Uploading += Client_Uploading;
-                //client.Downloading += Client_Downloading;
                 client.ErrorOccurred += Client_ErrorOccurred;
 
                 var state = ConsoleManager.GetConsoleState();
@@ -175,8 +160,6 @@ namespace DeployTool.Helpers
                     ConsoleManager.SetConsoleState(state);
                     client.ErrorOccurred -= Client_ErrorOccurred;
                     client.Uploading -= Client_Uploading;
-                    //client.Downloading -= Client_Downloading;
-                    //client.Disconnect();
                 }
             }
 
@@ -198,7 +181,6 @@ namespace DeployTool.Helpers
                     finally
                     {
                         client.ErrorOccurred -= Client_ErrorOccurred;
-                        //client.Disconnect();
                     }
                 }
             }
@@ -259,37 +241,14 @@ namespace DeployTool.Helpers
                 }
                 finally
                 {
-                    //client.Disconnect();
                 }
             }
         }
 
-
-        // TODO: Create remote directories
-        //public void Transfer2(DirectoryInfo localFolder, bool recurse, string remoteFolder, string remoteFullExecutable)
-        //{
-        //    using (var client = new ScpClient(_connectionInfo))
-        //    {
-        //        client.Connect();
-        //        client.Uploading += Client_Uploading;
-        //        client.Downloading += Client_Downloading;
-
-        //        var walker = new DirectoryWalker(localFolder, true, (f, r) =>
-        //            {
-        //                client.Upload(f, remoteFolder + "/" + r);
-        //            });
-
-        //        client.Disconnect();
-        //    }
-
-        //    if (!string.IsNullOrEmpty(remoteFullExecutable))
-        //    {
-        //        using (var client = new SftpClient(_connectionInfo))
-        //        {
-        //            client.ChangePermissions(remoteFullExecutable, 755);
-        //        }
-        //    }
-        //}
+        private void Client_ErrorOccurred(object sender, Renci.SshNet.Common.ExceptionEventArgs e)
+        {
+            _lastError = e.Exception.Message;
+        }
 
         private void Client_Downloading(object sender, Renci.SshNet.Common.ScpDownloadEventArgs e)
         {
@@ -304,11 +263,6 @@ namespace DeployTool.Helpers
         private void OnTransfer(SshProgress progress)
         {
             ConsoleManager.WriteAt(0, _cursorTop, progress.FormattedString);
-        }
-
-        private void Client_ErrorOccurred(object sender, Renci.SshNet.Common.ExceptionEventArgs e)
-        {
-            var _lastError = e.Exception.Message;
         }
 
         private PrivateKeyFile Load(string privateKeyFile, string passphrase)
