@@ -13,10 +13,15 @@ namespace DeployTool.Helpers
     {
         private ConnectionInfo _connectionInfo;
         private string _lastError;
+        private long _lastFileSize;
+
         private long _totalsize;
         private long _relativesize;
-        private long _lastFileSize;
         private long _lastFilePartial;
+
+        private long _totalAmount;
+        private long _currentFile;
+
         private string _lastFile;
         private int _cursorTop;
 
@@ -97,6 +102,7 @@ namespace DeployTool.Helpers
                 {
                     client.Upload(fileInfo, remoteFile);
                     if (!string.IsNullOrEmpty(_lastError)) return (true, _lastError);
+                    UpdateProgressFinal(1);
                 }
                 finally
                 {
@@ -141,8 +147,8 @@ namespace DeployTool.Helpers
         public (bool isError, string output) SshCopyDirectoryToRemote(DirectoryInfo localFolder, string remoteFolder, bool recurse, string remoteExecutable = null)
         {
             _lastError = null;
-            ResetProgress(localFolder.GetSize());
-            _relativesize = 0;
+            var folderInfo = localFolder.GetSizeAndAmount();
+            ResetProgress(folderInfo.size, folderInfo.amount);
 
             using (var client = new ScpClient(_connectionInfo))
             {
@@ -159,6 +165,7 @@ namespace DeployTool.Helpers
                 {
                     client.Upload(localFolder, remoteFolder);
                     if (!string.IsNullOrEmpty(_lastError)) return (true, _lastError);
+                    UpdateProgressFinal(folderInfo.amount);
                 }
                 finally
                 {
@@ -180,8 +187,11 @@ namespace DeployTool.Helpers
                     {
                         client.Connect();
                         client.ErrorOccurred += Client_ErrorOccurred;
-                        client.ChangePermissions(remoteFullExecutable, 755);
-                        if (!string.IsNullOrEmpty(_lastError)) return (true, _lastError);
+                        if (client.Exists(remoteFullExecutable))
+                        {
+                            client.ChangePermissions(remoteFullExecutable, 755);
+                            if (!string.IsNullOrEmpty(_lastError)) return (true, _lastError);
+                        }
                     }
                     finally
                     {
@@ -289,13 +299,14 @@ namespace DeployTool.Helpers
             UpdateProgress(e.Filename, e.Size, e.Uploaded);
         }
 
-        private void ResetProgress(long totalSize)
+        private void ResetProgress(long totalSize, long totalAmount)
         {
             _lastFile = null;
             _lastFileSize = 0;
             _lastFilePartial = 0;
             _relativesize = 0;
-            _totalsize = totalSize;
+            _totalsize = totalSize;     // total size of bytes to process
+            _totalAmount = totalAmount; // total number of files to process
         }
 
         private void UpdateProgress(string filename, long size, long partial)
@@ -307,6 +318,7 @@ namespace DeployTool.Helpers
                 //_relativesize += _lastFileSize;
                 //_lastFileSize = size;
                 _lastFile = filename;
+                _currentFile++;
             }
 
             var delta = partial - _lastFilePartial;
@@ -314,9 +326,31 @@ namespace DeployTool.Helpers
             _relativesize += delta;
 
             var percent = _relativesize * 100 / _totalsize;
-            var msg = $"{percent}% {filename} ";
+            var msg = $"{percent}% {_currentFile}/{_totalAmount} {filename} ";
             var filler = new string(' ', Console.WindowWidth - msg.Length-1);
             ConsoleManager.WriteAt(0, _cursorTop, msg + filler);
+        }
+
+        private void UpdateProgressFinal(long numFiles)
+        {
+            var percent = _relativesize * 100 / _totalsize;
+            var msg = $"{percent}% {numFiles} File(s), {FormatSize(_totalsize)}";
+            var filler = new string(' ', Console.WindowWidth - msg.Length - 1);
+            ConsoleManager.WriteAt(0, _cursorTop, msg + filler);
+        }
+
+        private string FormatSize(long totalsize)
+        {
+            string[] prefixes = { "bytes", "Kb", "Mb", "Gb", "Tb" };
+            int index = 0;
+            long size = totalsize;
+            while (index < prefixes.Length - 1 && size >= 1024)
+            {
+                size = size / 1024;
+                index++;
+            }
+
+            return $"{size.ToString("0.#")} {prefixes[index]}";
         }
 
         private void Client_ErrorOccurred(object sender, Renci.SshNet.Common.ExceptionEventArgs e)
