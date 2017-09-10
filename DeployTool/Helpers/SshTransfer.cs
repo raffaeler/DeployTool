@@ -13,16 +13,17 @@ namespace DeployTool.Helpers
     {
         private ConnectionInfo _connectionInfo;
         private string _lastError;
-        private long _lastFileSize;
+        private SshProgress _progress;
+        //private long _lastFileSize;
 
-        private long _totalsize;
-        private long _relativesize;
-        private long _lastFilePartial;
+        //private long _totalsize;
+        //private long _relativesize;
+        //private long _lastFilePartial;
 
-        private long _totalAmount;
-        private long _currentFile;
+        //private long _totalAmount;
+        //private long _currentFile;
 
-        private string _lastFile;
+        //private string _lastFile;
         private int _cursorTop;
 
         public SshTransfer(SshConfiguration configuration)
@@ -84,6 +85,7 @@ namespace DeployTool.Helpers
 
         public (bool isError, string output) SshCopyFileToRemote(FileInfo fileInfo, string remoteFolder)
         {
+            _progress = new SshProgress(fileInfo.Length, 1, OnTransfer);
             SshCreateRemoteFolder(remoteFolder);
             var remoteFile = $"{remoteFolder.TrimEnd('/')}/{fileInfo.Name}";
 
@@ -102,7 +104,7 @@ namespace DeployTool.Helpers
                 {
                     client.Upload(fileInfo, remoteFile);
                     if (!string.IsNullOrEmpty(_lastError)) return (true, _lastError);
-                    UpdateProgressFinal(1);
+                    _progress.UpdateProgressFinal();
                 }
                 finally
                 {
@@ -148,7 +150,7 @@ namespace DeployTool.Helpers
         {
             _lastError = null;
             var folderInfo = localFolder.GetSizeAndAmount();
-            ResetProgress(folderInfo.size, folderInfo.amount);
+            _progress = new SshProgress(folderInfo.size, folderInfo.amount, OnTransfer);
 
             using (var client = new ScpClient(_connectionInfo))
             {
@@ -165,7 +167,7 @@ namespace DeployTool.Helpers
                 {
                     client.Upload(localFolder, remoteFolder);
                     if (!string.IsNullOrEmpty(_lastError)) return (true, _lastError);
-                    UpdateProgressFinal(folderInfo.amount);
+                    _progress.UpdateProgressFinal();
                 }
                 finally
                 {
@@ -291,66 +293,17 @@ namespace DeployTool.Helpers
 
         private void Client_Downloading(object sender, Renci.SshNet.Common.ScpDownloadEventArgs e)
         {
-            UpdateProgress(e.Filename, e.Size, e.Downloaded);
+            _progress.UpdateProgress(e.Filename, e.Size, e.Downloaded);
         }
 
         private void Client_Uploading(object sender, Renci.SshNet.Common.ScpUploadEventArgs e)
         {
-            UpdateProgress(e.Filename, e.Size, e.Uploaded);
+            _progress.UpdateProgress(e.Filename, e.Size, e.Uploaded);
         }
 
-        private void ResetProgress(long totalSize, long totalAmount)
+        private void OnTransfer(SshProgress progress)
         {
-            _lastFile = null;
-            _lastFileSize = 0;
-            _lastFilePartial = 0;
-            _relativesize = 0;
-            _totalsize = totalSize;     // total size of bytes to process
-            _totalAmount = totalAmount; // total number of files to process
-        }
-
-        private void UpdateProgress(string filename, long size, long partial)
-        {
-            if (_lastFile != filename)
-            {
-                _lastFilePartial = 0;
-
-                //_relativesize += _lastFileSize;
-                //_lastFileSize = size;
-                _lastFile = filename;
-                _currentFile++;
-            }
-
-            var delta = partial - _lastFilePartial;
-            _lastFilePartial = partial;
-            _relativesize += delta;
-
-            var percent = _relativesize * 100 / _totalsize;
-            var msg = $"{percent}% {_currentFile}/{_totalAmount} {filename} ";
-            var filler = new string(' ', Console.WindowWidth - msg.Length-1);
-            ConsoleManager.WriteAt(0, _cursorTop, msg + filler);
-        }
-
-        private void UpdateProgressFinal(long numFiles)
-        {
-            var percent = _relativesize * 100 / _totalsize;
-            var msg = $"{percent}% {numFiles} File(s), {FormatSize(_totalsize)}";
-            var filler = new string(' ', Console.WindowWidth - msg.Length - 1);
-            ConsoleManager.WriteAt(0, _cursorTop, msg + filler);
-        }
-
-        private string FormatSize(long totalsize)
-        {
-            string[] prefixes = { "bytes", "Kb", "Mb", "Gb", "Tb" };
-            int index = 0;
-            long size = totalsize;
-            while (index < prefixes.Length - 1 && size >= 1024)
-            {
-                size = size / 1024;
-                index++;
-            }
-
-            return $"{size.ToString("0.#")} {prefixes[index]}";
+            ConsoleManager.WriteAt(0, _cursorTop, progress.FormattedString);
         }
 
         private void Client_ErrorOccurred(object sender, Renci.SshNet.Common.ExceptionEventArgs e)

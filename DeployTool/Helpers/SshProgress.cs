@@ -11,17 +11,8 @@ namespace DeployTool.Helpers
 
         public SshProgress(long totalTransferSize, long numberOfFiles, Action<SshProgress> onTransfer)
         {
-            TotalTransferSize = totalTransferSize;
-            TotalNumberOfFiles = numberOfFiles;
+            Reset(totalTransferSize, numberOfFiles);
             _onTransfer = onTransfer;
-
-            _lastFilePartial = 0;
-            Percent = 0;
-            AlreadyTransferredSize = 0;
-            TotalTransferSizeWithSuffix = string.Empty;
-            CurrentFilename = string.Empty;
-            CurrentFileIndex = 0;
-            FormattedString = string.Empty;
         }
 
         public long Percent { get; private set; }
@@ -33,7 +24,21 @@ namespace DeployTool.Helpers
         public long CurrentFileIndex { get; private set; }
         public string FormattedString { get; private set; }
 
-        public void UpdateTransfer(string filename, long size, long partial)
+        public void Reset(long totalTransferSize, long numberOfFiles)
+        {
+            TotalTransferSize = totalTransferSize;
+            TotalNumberOfFiles = numberOfFiles;
+
+            _lastFilePartial = 0;
+            Percent = 0;
+            AlreadyTransferredSize = 0;
+            TotalTransferSizeWithSuffix = string.Empty;
+            CurrentFilename = string.Empty;
+            CurrentFileIndex = 0;
+            FormattedString = string.Empty;
+        }
+
+        public void UpdateProgress(string filename, long size, long partial)
         {
             if (CurrentFilename != filename)
             {
