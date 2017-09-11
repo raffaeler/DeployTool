@@ -8,18 +8,23 @@
     <Authors>Raffaele Rialdi @raffaeler</Authors>
     <Company>Raffaele Rialdi</Company>
     <Description>A dotnet CLI extension to ease the SSH deployment of an application.
-It makes Continuous Deployment easier and offers also an interactive menu.</Description>
+It makes Continuous Deployment easier and offers also an interactive menu.
+dotnet publish -h for help</Description>
     <Copyright>Copyright (c) 2017, Raffaele Rialdi</Copyright>
     <PackageLicenseUrl>https://github.com/raffaeler/CLITools/blob/master/LICENSE</PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/raffaeler/CLITools/tree/master/DeployTool</PackageProjectUrl>
     <RepositoryUrl>https://github.com/raffaeler/CLITools</RepositoryUrl>
     <RepositoryType>GitHub</RepositoryType>
     <PackageTags>deploy continuous deployment CLI extension tool SSH</PackageTags>
+    <PackageIconUrl>https://github.com/raffaeler/CLITools/blob/master/DeployTool/DeployTool/DeployTool.png</PackageIconUrl>
+    <PackageReleaseNotes>See repository home page for details</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
     <PackageReference Include="SSH.NET" Version="2016.0.0" />
   </ItemGroup>
+
+  <Import Project="..\DeploToolShared\DeploToolShared.projitems" Label="Shared" />
 
 </Project>

@@ -48,7 +48,7 @@ namespace DeployTool.Executers
 
         private (string project, string folder)[] FindFolders(string output, string projectName)
         {
-            var collection = Regex.Matches(output, ResultExpr, RegexOptions.Multiline);
+            var collection = Regex.Matches(output, ResultExpr, RegexOptions.Multiline).OfType<Match>();
             var result = collection
                 .Where(x => x.Groups.Count >= MaxGroup && x.Groups[ProjectGroup].Success && x.Groups[FolderGroup].Success)
                 .Select(x => (x.Groups[ProjectGroup].Value, x.Groups[FolderGroup].Value))

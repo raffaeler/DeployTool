@@ -1,0 +1,96 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>4d2cadc0-7c84-4c1a-a519-5d490440d171</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>DeploToolShared</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)CommandLine\Commands\CreateCommand.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CommandLine\Commands\HelpCommand.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CommandLine\Commands\InteractCommand.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CommandLine\Commands\RunCommand.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CommandLine\Core\CliCommand.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CommandLine\Core\CliCommandFactory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CommandLine\Core\CliOption.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CommandLine\Core\ICliCommand.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CommandLine\Core\ICliCommandFactory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Configuration\Actions\DotnetPublishAction.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Configuration\Actions\IAction.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Configuration\Actions\SshCopyToRemoteAction.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Configuration\Actions\SshRunCommandAction.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Configuration\Actions\SshRunRemoteAppAction.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Configuration\Model\DeployConfiguration.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Configuration\Model\PrivateKeyData.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Configuration\Model\SshConfiguration.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Configuration\Serialization\ActionConverter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Configuration\Serialization\DeployConfigurationConverter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Configuration\Serialization\JsonContractResolver.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Configuration\Serialization\JsonConverterHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Configuration\Serialization\JsonHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Configuration\Serialization\SshConfigurationConverter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Constants.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DeployApp.Create.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DeployApp.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DeployApp.Help.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DeployApp.Interact.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DeployApp.Run.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Executers\Core\ExecuterBase.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Executers\Core\ExecuterManager.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Executers\Core\PipelineBag.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Executers\Local\DotNetExecuter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Executers\Local\DotNetPublishExecuter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Executers\Ssh\SshCopyToRemoteExecuter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Executers\Ssh\SshRunAppExecuter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Executers\Ssh\SshRunCommandExecuter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\ConsoleManager.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\DirectoryWalker.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\IOExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\ProjectHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\SshProgress.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\SshTransfer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\VariablesHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Obsolete\Interactivity\ConsoleManager.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Obsolete\Interactivity\InvokerKind.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Obsolete\Interactivity\MenuItem.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Obsolete\Interactivity\Navigator.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Obsolete\WatchCommand.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Program.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)1.deploy" />
+    <None Include="$(MSBuildThisFileDirectory)10.deploy" />
+    <None Include="$(MSBuildThisFileDirectory)11.deploy" />
+    <None Include="$(MSBuildThisFileDirectory)12.deploy" />
+    <None Include="$(MSBuildThisFileDirectory)13.deploy" />
+    <None Include="$(MSBuildThisFileDirectory)14.deploy" />
+    <None Include="$(MSBuildThisFileDirectory)15.deploy" />
+    <None Include="$(MSBuildThisFileDirectory)16.deploy" />
+    <None Include="$(MSBuildThisFileDirectory)17.deploy" />
+    <None Include="$(MSBuildThisFileDirectory)18.deploy" />
+    <None Include="$(MSBuildThisFileDirectory)19.deploy" />
+    <None Include="$(MSBuildThisFileDirectory)2.deploy" />
+    <None Include="$(MSBuildThisFileDirectory)20.deploy" />
+    <None Include="$(MSBuildThisFileDirectory)21.deploy" />
+    <None Include="$(MSBuildThisFileDirectory)22.deploy" />
+    <None Include="$(MSBuildThisFileDirectory)23.deploy" />
+    <None Include="$(MSBuildThisFileDirectory)24.deploy" />
+    <None Include="$(MSBuildThisFileDirectory)25.deploy" />
+    <None Include="$(MSBuildThisFileDirectory)26.deploy" />
+    <None Include="$(MSBuildThisFileDirectory)27.deploy" />
+    <None Include="$(MSBuildThisFileDirectory)3.deploy" />
+    <None Include="$(MSBuildThisFileDirectory)4.deploy" />
+    <None Include="$(MSBuildThisFileDirectory)5.deploy" />
+    <None Include="$(MSBuildThisFileDirectory)6.deploy" />
+    <None Include="$(MSBuildThisFileDirectory)7.deploy" />
+    <None Include="$(MSBuildThisFileDirectory)8.deploy" />
+    <None Include="$(MSBuildThisFileDirectory)9.deploy" />
+    <None Include="$(MSBuildThisFileDirectory)DeployTool.png" />
+    <None Include="$(MSBuildThisFileDirectory)piraf6.deploy" />
+    <None Include="$(MSBuildThisFileDirectory)raf.deploy" />
+    <None Include="$(MSBuildThisFileDirectory)t30.deploy" />
+  </ItemGroup>
+</Project>

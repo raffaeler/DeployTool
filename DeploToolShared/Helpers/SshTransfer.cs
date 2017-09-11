@@ -112,14 +112,14 @@ namespace DeployTool.Helpers
                 throw new Exception($"RemoveRemote: The remote folder must be absolute. The request was instead: ({remoteFolder})");
             }
 
-            var remoteFolders = remoteFolder.Split('/', StringSplitOptions.RemoveEmptyEntries);
+            var remoteFolders = remoteFolder.Split(new char[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
 
             using (var client = new SftpClient(_connectionInfo))
             {
                 try
                 {
                     client.Connect();
-                    string root = remoteFolder.StartsWith('~') ? "" : "/";
+                    string root = remoteFolder.StartsWith("~") ? "" : "/";
                     foreach (var folder in remoteFolders)
                     {
                         root += folder + "/";

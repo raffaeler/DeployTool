@@ -7,7 +7,15 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DeployTool", "DeployTool\De
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeployToolTests", "DeployToolTests\DeployToolTests.csproj", "{D4407CFA-0ACF-496E-91DC-93F0AECFF942}"
 EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "DeploToolShared", "DeploToolShared\DeploToolShared.shproj", "{4D2CADC0-7C84-4C1A-A519-5D490440D171}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeployToolFx", "DeployToolFx\DeployToolFx.csproj", "{61AA2D3F-A22D-4BF2-8612-C6F2959E8CFD}"
+EndProject
 Global
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		DeploToolShared\DeploToolShared.projitems*{4d2cadc0-7c84-4c1a-a519-5d490440d171}*SharedItemsImports = 13
+		DeploToolShared\DeploToolShared.projitems*{61aa2d3f-a22d-4bf2-8612-c6f2959e8cfd}*SharedItemsImports = 4
+	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
@@ -21,6 +29,10 @@ Global
 		{D4407CFA-0ACF-496E-91DC-93F0AECFF942}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D4407CFA-0ACF-496E-91DC-93F0AECFF942}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D4407CFA-0ACF-496E-91DC-93F0AECFF942}.Release|Any CPU.Build.0 = Release|Any CPU
+		{61AA2D3F-A22D-4BF2-8612-C6F2959E8CFD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{61AA2D3F-A22D-4BF2-8612-C6F2959E8CFD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{61AA2D3F-A22D-4BF2-8612-C6F2959E8CFD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{61AA2D3F-A22D-4BF2-8612-C6F2959E8CFD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
