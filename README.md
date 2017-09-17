@@ -9,14 +9,14 @@ The typical steps run by the tool are:
 
 ## **Disclaimer**
 ### **Re-read the license: author does not assume any responsibilty or liability**
-```
-One of the actions copy a folder and its files on the remote device. Before doing it, it optionally deletes the remote folder tree. The cleanup is very useful but, if misconfigured, is also extremely dangerous and potentially destructive, especially if the credentials are administrative.
 
-The "DeleteRemoteFolder" (see below) should be turned on only if you specified a remote folder that is safe to delete. Be advised that all the subtree will be removed using the "rm -rf foldername" command.
+> One of the actions copy a folder and its files on the remote device. Before doing it, it optionally deletes the remote folder tree. The **cleanup** is very useful but, if misconfigured, is also extremely dangerous and **potentially destructive**, especially if the credentials are administrative.
+> 
+> The **DeleteRemoteFolder** (see below) should be turned on only if you specified a remote folder that is safe to delete. Be advised that all the subtree will be removed using the "rm -rf foldername" command.
+> 
+> Example of a destructive action:
+> If the remote folder is "/" and the user is "root", the deletion will wipe all the files on all the mounted devices (including USB keys or any other remote device).
 
-Example of a destructive action:
-If the remote folder is "/" and the user is "root", the deletion will wipe all the files on all the mounted devices (including USB keys or any other remote device).
-```
 
 ## Tool description
 The tool use configuration files to describe all the necessary info (connection, remote machine name, etc.) and the list of all the desired actions.
