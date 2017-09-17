@@ -28,8 +28,17 @@ namespace DeployTool
         {
             _executerManager = new ExecuterManager();
 
-            _project = EnsureProjectFolder();
             var command = GetCommand(args);
+            switch (command)
+            {
+                case HelpCommand helpCommand:
+                    return ProcessHelpCommand(helpCommand);
+
+                case ProtectCommand protectCommand:
+                    return ProcessProtectCommand(protectCommand);
+            }
+
+            _project = EnsureProjectFolder();
             if (_project == null || command == null) return -1;
 
             _executerManager.Bag.SetValue(PipelineBag.ProjectName, _project.ProjectName);
@@ -37,14 +46,8 @@ namespace DeployTool
 
             switch (command)
             {
-                case HelpCommand helpCommand:
-                    return ProcessHelpCommand(helpCommand);
-
                 case CreateCommand createCommand:
                     return ProcessCreateCommand(createCommand);
-
-                case ProtectCommand protectCommand:
-                    return ProcessProtectCommand(protectCommand);
 
                 case InteractCommand interactCommand:
                     return ProcessInteractCommand(interactCommand);

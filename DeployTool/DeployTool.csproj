@@ -18,6 +18,15 @@ dotnet publish -h for help</Description>
     <PackageTags>deploy continuous deployment CLI extension tool SSH</PackageTags>
     <PackageIconUrl>https://github.com/raffaeler/CLITools/blob/master/DeployTool/DeployTool/DeployTool.png</PackageIconUrl>
     <PackageReleaseNotes>See repository home page for details</PackageReleaseNotes>
+    <AssemblyVersion>1.0.0.10</AssemblyVersion>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DefineConstants>TRACE;DEBUG;DOTNETCLI</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DefineConstants>TRACE;DOTNETCLI</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>

@@ -91,7 +91,7 @@ namespace DeployTool
 
                     new SshCopyToRemoteAction()
                     {
-                        DeleteRemoteFolder = true,
+                        DeleteRemoteFolder = false,
                         Recurse = true,
                         RemoteFolder = $"/{PipelineBag.ProjectName}",
                         LocalItems = new [] { PipelineBag.PublishDir, "sqlite.db" },
@@ -139,7 +139,7 @@ namespace DeployTool
 
                     new SshCopyToRemoteAction()
                     {
-                        DeleteRemoteFolder = true,
+                        DeleteRemoteFolder = false,
                         Recurse = true,
                         RemoteFolder = $"/{PipelineBag.ProjectName}",
                         LocalItems = new [] { PipelineBag.PublishDir },

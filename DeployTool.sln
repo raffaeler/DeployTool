@@ -1,15 +1,20 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26823.1
+VisualStudioVersion = 15.0.26906.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DeployTool", "DeployTool\DeployTool.csproj", "{CD328971-629A-43ED-A92B-D46ED6AA5A47}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeployToolTests", "DeployToolTests\DeployToolTests.csproj", "{D4407CFA-0ACF-496E-91DC-93F0AECFF942}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DeployToolTests", "DeployToolTests\DeployToolTests.csproj", "{D4407CFA-0ACF-496E-91DC-93F0AECFF942}"
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "DeploToolShared", "DeploToolShared\DeploToolShared.shproj", "{4D2CADC0-7C84-4C1A-A519-5D490440D171}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeployToolFx", "DeployToolFx\DeployToolFx.csproj", "{61AA2D3F-A22D-4BF2-8612-C6F2959E8CFD}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{C3674DFC-D92D-41EA-8D41-3DB784922317}"
+	ProjectSection(SolutionItems) = preProject
+		README.md = README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
