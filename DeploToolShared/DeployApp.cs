@@ -17,6 +17,7 @@ namespace DeployTool
         public DeployApp()
         {
             //CliCommandFactory.Instance.Register(x => new WatchCommand(x), "watch");
+            CliCommandFactory.Instance.Register(x => new ProtectCommand(x), "protect");
             CliCommandFactory.Instance.Register(x => new CreateCommand(x), "create");
             CliCommandFactory.Instance.Register(x => new RunCommand(x), "run");
             CliCommandFactory.Instance.Register(x => new InteractCommand(x), "interact");
@@ -41,6 +42,9 @@ namespace DeployTool
 
                 case CreateCommand createCommand:
                     return ProcessCreateCommand(createCommand);
+
+                case ProtectCommand protectCommand:
+                    return ProcessProtectCommand(protectCommand);
 
                 case InteractCommand interactCommand:
                     return ProcessInteractCommand(interactCommand);

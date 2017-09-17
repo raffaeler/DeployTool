@@ -133,6 +133,9 @@ namespace DeployTool.Helpers
             }
             while (key != ConsoleKey.Q);
 
+            Console.BackgroundColor = Background;
+            Clear();
+
             return null;
         }
 

@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using DeployTool.Configuration;
 using Renci.SshNet;
+using DeploToolShared.Helpers;
 
 namespace DeployTool.Helpers
 {
@@ -34,15 +35,19 @@ namespace DeployTool.Helpers
                 authenticationMethod =
                     new PrivateKeyAuthenticationMethod(configuration.Username, privateKeys);
             }
-            else if (!string.IsNullOrEmpty(configuration.Password))
-            {
-                authenticationMethod =
-                        new PasswordAuthenticationMethod(configuration.Username, configuration.Password);
-            }
             else
             {
-                authenticationMethod =
-                    new NoneAuthenticationMethod(configuration.Username);
+                var password = GetPassword(configuration);
+                if (!string.IsNullOrEmpty(password))
+                {
+                    authenticationMethod =
+                            new PasswordAuthenticationMethod(configuration.Username, password);
+                }
+                else
+                {
+                    authenticationMethod =
+                        new NoneAuthenticationMethod(configuration.Username);
+                }
             }
 
             if (string.IsNullOrEmpty(configuration.ProxyHost))
@@ -60,6 +65,8 @@ namespace DeployTool.Helpers
             }
             else
             {
+                var proxyPassword = GetProxyPassword(configuration);
+
                 _connectionInfo = new ConnectionInfo(
                     configuration.Host,
                     configuration.Port,
@@ -68,9 +75,45 @@ namespace DeployTool.Helpers
                     configuration.ProxyHost,
                     configuration.ProxyPort,
                     configuration.ProxyUsername,
-                    configuration.ProxyPassword,
+                    proxyPassword,
                     authenticationMethod);
             }
+        }
+
+        private string GetPassword(SshConfiguration configuration)
+        {
+            if (!string.IsNullOrEmpty(configuration.EncryptedPassword))
+            {
+                try
+                {
+                    var password = DPApiHelper.Decrypt(configuration.EncryptedPassword);
+                    return password;
+                }
+                catch (Exception err)
+                {
+                    Console.WriteLine($"Encrypted password is not valid, fallback to password: {err.Message}");
+                }
+            }
+
+            return configuration.Password;
+        }
+
+        private string GetProxyPassword(SshConfiguration configuration)
+        {
+            if (!string.IsNullOrEmpty(configuration.EncryptedProxyPassword))
+            {
+                try
+                {
+                    var proxyPassword = DPApiHelper.Decrypt(configuration.EncryptedProxyPassword);
+                    return proxyPassword;
+                }
+                catch (Exception err)
+                {
+                    Console.WriteLine($"Encrypted proxy password is not valid, fallback to proxy password: {err.Message}");
+                }
+            }
+
+            return configuration.ProxyPassword;
         }
 
         public (bool isError, string output) SshCopyFileToRemote(FileInfo fileInfo, string remoteFolder)

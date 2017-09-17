@@ -41,7 +41,8 @@ namespace DeployTool.Helpers
             var assemblyNameNode = assemblyNameNodes.FirstOrDefault();
             if (assemblyNameNode == null)
             {
-                throw new Exception($"The project file {_projectFilename} does not contain the \"AssemblyName\" node");
+                AssemblyName = ProjectName;
+                return;
             }
 
             AssemblyName = assemblyNameNode.Value;

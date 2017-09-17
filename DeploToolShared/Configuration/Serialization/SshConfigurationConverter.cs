@@ -26,6 +26,7 @@ namespace DeployTool.Configuration
             jo.TryRead<int>(serializer, "Port", x => item.Port = x, () => item.Port = 22);
             jo.TryRead<string>(serializer, "Username", x => item.Username = x);
             jo.TryRead<string>(serializer, "Password", x => item.Password = x);
+            jo.TryRead<string>(serializer, "EncryptedPassword", x => item.EncryptedPassword = x);
 
             jo.TryRead<PrivateKeyData[]>(serializer, "PrivateKeys", x => item.PrivateKeys = x, () => item.PrivateKeys = new PrivateKeyData[0]);
 
@@ -33,6 +34,7 @@ namespace DeployTool.Configuration
             jo.TryRead<int>(serializer, "ProxyPort", x => item.ProxyPort = x, () => item.ProxyPort = 8080);
             jo.TryRead<string>(serializer, "ProxyUsername", x => item.ProxyUsername = x);
             jo.TryRead<string>(serializer, "ProxyPassword", x => item.ProxyPassword = x);
+            jo.TryRead<string>(serializer, "EncryptedProxyPassword", x => item.EncryptedProxyPassword = x);
 
             return item;
         }
@@ -54,6 +56,7 @@ namespace DeployTool.Configuration
 
             jo.AddIfNotEqual(serializer, "Username", item.Username, null);
             jo.AddIfNotEqual(serializer, "Password", item.Password, null);
+            jo.AddIfNotEqual(serializer, "EncryptedPassword", item.Password, null);
 
             jo.AddIfNotEqual(serializer, "PrivateKeys", item.PrivateKeys, null);
 
@@ -63,6 +66,7 @@ namespace DeployTool.Configuration
                 jo.AddIfNotEqual(serializer, "ProxyPort", item.ProxyPort, 8080);
                 jo.AddIfNotEqual(serializer, "ProxyUsername", item.ProxyUsername, null);
                 jo.AddIfNotEqual(serializer, "ProxyPassword", item.ProxyPassword, null);
+                jo.AddIfNotEqual(serializer, "EncryptedProxyPassword", item.ProxyPassword, null);
             }
 
             jo.WriteTo(writer);

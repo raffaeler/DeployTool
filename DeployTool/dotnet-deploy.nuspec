@@ -6,21 +6,24 @@
     <title>Deploy Tool</title>
     <authors>Raffaele Rialdi @raffaeler</authors>
     <owners>Raffaele Rialdi @raffaeler</owners>
-    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <licenseUrl>https://github.com/raffaeler/CLITools/blob/master/LICENSE</licenseUrl>
-    <projectUrl>https://github.com/raffaeler/CLITools/tree/master/DeployTool</projectUrl>
-    <iconUrl>https://github.com/raffaeler/CLITools/blob/master/DeployTool/DeployTool/DeployTool.png</iconUrl>
+    <projectUrl>https://github.com/raffaeler/CLITools/tree/master/DeployTool/DeployToolFx</projectUrl>
+    <iconUrl>https://github.com/raffaeler/CLITools/blob/master/DeployTool/DeploToolShared/DeployTool.png</iconUrl>
     <description>A dotnet CLI extension to ease the SSH deployment of an application.
 It makes Continuous Deployment easier and offers also an interactive menu.
-dotnet publish -h for help</description>
-    <releaseNotes>See repository home page for details</releaseNotes>
+dotnet deploy -h for help</description>
+    <releaseNotes>The author/owner does not take any responsibilities on the tool and its usage.
+See repository home page for details</releaseNotes>
     <copyright>Copyright (c) 2017, Raffaele Rialdi</copyright>
     <tags>deploy continuous deployment CLI extension tool SSH</tags>
     <repository type="GitHub" url="https://github.com/raffaeler/CLITools" />
+    <packageTypes>
+      <packageType name="DotnetCliTool" />
+    </packageTypes>
     <dependencies>
       <group targetFramework=".NETCoreApp2.0">
         <dependency id="SSH.NET" version="2016.0.0" exclude="Build,Analyzers" />
-        <dependency id="Microsoft.NETCore.App" version="2.0.0" exclude="Build,Analyzers" />
         <dependency id="Newtonsoft.Json" version="10.0.3" exclude="Build,Analyzers" />
       </group>
     </dependencies>

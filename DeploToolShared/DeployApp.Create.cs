@@ -54,10 +54,12 @@ namespace DeployTool
                     Host = "machine-name",
                     Username = "username",
                     Password = "password",
+                    EncryptedPassword = "...",
                     Port = 22,
                     ProxyHost = "proxy-host",
                     ProxyUsername = "proxy-username",
                     ProxyPassword = "proxy-password",
+                    EncryptedProxyPassword = "...",
                     ProxyPort = 8080,
                     PrivateKeys = new PrivateKeyData[]
                     {
@@ -123,6 +125,7 @@ namespace DeployTool
                     Host = "machine-name",
                     Username = "username",
                     Password = "password",
+                    EncryptedPassword = "...",
                 },
 
                 Actions = new List<IAction>()

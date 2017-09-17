@@ -20,11 +20,11 @@ namespace DeployTool
     {
         private static DeployApp _app;
 
-        static void Main(string[] args)
+        static int Main(string[] args)
         {
             _app = new DeployApp();
 
-            _app.ProcessCLI(args);
+            return _app.ProcessCLI(args);
         }
 
         private static void obsolete()
