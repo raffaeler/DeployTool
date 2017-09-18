@@ -8,6 +8,9 @@ namespace DeployTool.Helpers
     {
         private long _lastFilePartial;
         private Action<SshProgress> _onTransfer;
+        private DateTime _lastUpdate;
+        private TimeSpan _minRefresh = TimeSpan.FromMilliseconds(750);
+        private object _lock = new object();
 
         public SshProgress(long totalTransferSize, long numberOfFiles, Action<SshProgress> onTransfer)
         {
@@ -36,49 +39,60 @@ namespace DeployTool.Helpers
             CurrentFilename = string.Empty;
             CurrentFileIndex = 0;
             FormattedString = string.Empty;
+            _lastUpdate = DateTime.Now;
         }
 
         public void UpdateProgress(string filename, long size, long partial)
         {
-            if (CurrentFilename != filename)
+            lock (_lock)
             {
-                _lastFilePartial = 0;
+                if (CurrentFilename != filename)
+                {
+                    _lastFilePartial = 0;
 
-                //_relativesize += _lastFileSize;
-                //_lastFileSize = size;
-                CurrentFilename = filename;
-                CurrentFileIndex++;
+                    //_relativesize += _lastFileSize;
+                    //_lastFileSize = size;
+                    CurrentFilename = filename;
+                    CurrentFileIndex++;
+                }
+
+                var delta = partial - _lastFilePartial;
+                _lastFilePartial = partial;
+                AlreadyTransferredSize += delta;
+
+                var percent = AlreadyTransferredSize * 100 / TotalTransferSize;
+                var msg = $"{percent}% {CurrentFileIndex}/{TotalNumberOfFiles} {filename} ";
+                var filler = new string(' ', Console.WindowWidth - msg.Length - 1);
+                FormattedString = msg + filler;
+                //ConsoleManager.WriteAt(0, _cursorTop, FormattedString);
+                if (DateTime.Now - _lastUpdate > _minRefresh)
+                {
+                    _lastUpdate = DateTime.Now;
+                    _onTransfer(this);
+                }
             }
-
-            var delta = partial - _lastFilePartial;
-            _lastFilePartial = partial;
-            AlreadyTransferredSize += delta;
-
-            var percent = AlreadyTransferredSize * 100 / TotalTransferSize;
-            var msg = $"{percent}% {CurrentFileIndex}/{TotalNumberOfFiles} {filename} ";
-            var filler = new string(' ', Console.WindowWidth - msg.Length - 1);
-            FormattedString = msg + filler;
-            //ConsoleManager.WriteAt(0, _cursorTop, FormattedString);
-            _onTransfer(this);
         }
 
         public void UpdateProgressFinal(long? currentCount = null)
         {
-            if (TotalTransferSize != 0)
+            lock (_lock)
             {
-                long total;
-                if (currentCount.HasValue)
-                    total = currentCount.Value;
-                else
-                    total = TotalNumberOfFiles;
+                if (TotalTransferSize != 0)
+                {
+                    long total;
+                    if (currentCount.HasValue)
+                        total = currentCount.Value;
+                    else
+                        total = TotalNumberOfFiles;
 
-                //var percent = AlreadyTransferredSize * 100 / TotalTransferSize;
-                var percent = total * 100 / TotalNumberOfFiles;
-                var msg = $"{percent}% {TotalNumberOfFiles} File(s), {FormatSize(TotalTransferSize)}";
-                var filler = new string(' ', Console.WindowWidth - msg.Length - 1);
-                FormattedString = msg + filler;
-                //ConsoleManager.WriteAt(0, _cursorTop, FormattedString);
-                _onTransfer(this);
+                    //var percent = AlreadyTransferredSize * 100 / TotalTransferSize;
+                    var percent = total * 100 / TotalNumberOfFiles;
+                    var msg = $"{percent}% {TotalNumberOfFiles} File(s), {FormatSize(TotalTransferSize)}";
+                    var filler = new string(' ', Console.WindowWidth - msg.Length - 1);
+                    FormattedString = msg + filler;
+                    //ConsoleManager.WriteAt(0, _cursorTop, FormattedString);
+                    _onTransfer(this);
+                }
             }
         }
 

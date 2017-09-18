@@ -119,14 +119,14 @@ namespace DeployTool.Helpers
         public (bool isError, string output) SshCopyFileToRemote(FileInfo fileInfo, string remoteFolder)
         {
             _progress = new SshProgress(fileInfo.Length, 1, OnTransfer);
-            bool wasCreated = SshCreateRemoteFolder(remoteFolder);
-            var remoteFile = $"{remoteFolder.TrimEnd('/')}/{fileInfo.Name}";
+            //bool wasCreated = SshCreateRemoteFolder(remoteFolder);
+            var rf = $"{remoteFolder.TrimEnd('/')}/";
 
-            using (var client = new ScpClient(_connectionInfo))
+            using (var client = new SftpClient(_connectionInfo))
             {
                 client.Connect();
-                client.Uploading += Client_Uploading;
                 client.ErrorOccurred += Client_ErrorOccurred;
+                SshCreateRemoteFolder(client, remoteFolder);
 
                 var state = ConsoleManager.GetConsoleState();
                 _cursorTop = state.Top;
@@ -134,19 +134,65 @@ namespace DeployTool.Helpers
 
                 try
                 {
-                    client.Upload(fileInfo, remoteFile);
+                    using (var fs = File.OpenRead(fileInfo.FullName))
+                    {
+                        client.UploadFile(fs, rf + fileInfo.Name, true, length =>
+                            _progress.UpdateProgress(fileInfo.Name, fileInfo.Length, (long)length));
+                    }
+
                     if (!string.IsNullOrEmpty(_lastError)) return (true, _lastError);
                     _progress.UpdateProgressFinal();
-                    ConsoleManager.SetConsoleState(0, state.Top + 1);
+                    _cursorTop++;
+                    ConsoleManager.SetConsoleState(0, _cursorTop);
                 }
                 finally
                 {
                     client.ErrorOccurred -= Client_ErrorOccurred;
-                    client.Uploading -= Client_Uploading;
                 }
             }
 
             return (false, "Upload ok");
+        }
+
+        public bool SshCreateRemoteFolder(SftpClient client, string remoteFolder)
+        {
+            bool wasCreated = false;
+            if (!remoteFolder.StartsWith("/") && !remoteFolder.StartsWith("~"))
+            {
+                throw new Exception($"RemoveRemote: The remote folder must be absolute. The request was instead: ({remoteFolder})");
+            }
+
+            var remoteFolders = remoteFolder.Split(new char[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
+
+            try
+            {
+                string root = remoteFolder.StartsWith("~") ? "" : "/";
+                foreach (var folder in remoteFolders)
+                {
+                    root += folder + "/";
+                    //if (!client.Exists(root))
+                    //{
+                    try
+                    {
+                        client.CreateDirectory(root);
+                        wasCreated = true;
+                    }
+                    catch (Exception)
+                    {
+                        wasCreated = false;
+                    }
+                    //}
+                }
+            }
+            catch (Exception err)
+            {
+                throw new Exception($"Cannot create the remote directory: {err.Message}");
+            }
+            finally
+            {
+            }
+
+            return wasCreated;
         }
 
         public bool SshCreateRemoteFolder(string remoteFolder)
@@ -211,20 +257,21 @@ namespace DeployTool.Helpers
 
                 //if (true)
                 //{
-                    try
-                    {
-                        client.Upload(localFolder, remoteFolder);
-                        if (!string.IsNullOrEmpty(_lastError)) return (true, _lastError);
-                        _progress.UpdateProgressFinal();
-                        ConsoleManager.SetConsoleState(0, state.Top + 1);
-                    }
-                    finally
-                    {
-                        state.Top = Console.CursorTop + 1;
-                        ConsoleManager.SetConsoleState(state);
-                        client.ErrorOccurred -= Client_ErrorOccurred;
-                        client.Uploading -= Client_Uploading;
-                    }
+                try
+                {
+                    client.Upload(localFolder, remoteFolder);
+                    if (!string.IsNullOrEmpty(_lastError)) return (true, _lastError);
+                    _progress.UpdateProgressFinal();
+                    _cursorTop++;
+                    ConsoleManager.SetConsoleState(0, _cursorTop);
+                }
+                finally
+                {
+                    state.Top = Console.CursorTop + 1;
+                    ConsoleManager.SetConsoleState(state);
+                    client.ErrorOccurred -= Client_ErrorOccurred;
+                    client.Uploading -= Client_Uploading;
+                }
                 //}
                 //else
                 //{
@@ -300,16 +347,17 @@ namespace DeployTool.Helpers
             _lastError = null;
             var folderInfo = localFolder.GetSizeAndAmount();
             _progress = new SshProgress(folderInfo.size, folderInfo.amount, OnTransfer);
-            bool wasCreated = SshCreateRemoteFolder(remoteFolder);
-
-            var walker = new DirectoryWalker(localFolder, recurse);
+            //bool wasCreated = SshCreateRemoteFolder(remoteFolder);
 
             var rf = $"{remoteFolder.TrimEnd('/')}/";
+            int count = 0;
 
             using (var client = new SftpClient(_connectionInfo))
             {
                 client.Connect();
                 client.ErrorOccurred += Client_ErrorOccurred;
+                var walker = new DirectoryWalker(localFolder, recurse);
+                client.CreateDirectory(remoteFolder);
 
                 var state = ConsoleManager.GetConsoleState();
                 _cursorTop = state.Top;
@@ -317,10 +365,41 @@ namespace DeployTool.Helpers
 
                 try
                 {
-                    client.SynchronizeDirectories(localFolder.FullName, remoteFolder, "*.*");
-                    if (!string.IsNullOrEmpty(_lastError)) return (true, _lastError);
-                    _progress.UpdateProgressFinal();
-                    ConsoleManager.SetConsoleState(0, state.Top + 1);
+                    var isSuccess = walker.Walk((fileInfo, relative) =>
+                    {
+                        try
+                        {
+                            using (var fs = File.OpenRead(fileInfo.FullName))
+                            {
+                                client.UploadFile(fs, rf + relative, true, length =>
+                                    _progress.UpdateProgress(fileInfo.Name, fileInfo.Length, (long)length));
+                            }
+
+                            ++count;
+                            return true;
+                        }
+                        catch (Exception err)
+                        {
+                            _lastError = err.Message;
+                            return false;
+                        }
+                    },
+                    (directoryInfo, relative) =>
+                    {
+                        //SshCreateRemoteFolder(rf + relative);
+                        client.CreateDirectory(rf + relative);
+                        return true;
+                    });
+
+                    if (!isSuccess || !string.IsNullOrEmpty(_lastError)) return (true, _lastError);
+                    _progress.UpdateProgressFinal(count);
+                    _cursorTop++;
+                    ConsoleManager.SetConsoleState(0, _cursorTop);
+                }
+                catch (Exception err)
+                {
+                    _lastError = $"Error copying {_progress.CurrentFilename}: {err.Message}";
+                    return (true, _lastError);
                 }
                 finally
                 {
@@ -350,6 +429,11 @@ namespace DeployTool.Helpers
                             client.ChangePermissions(remoteFullExecutable, 755);
                             if (!string.IsNullOrEmpty(_lastError)) return (true, _lastError);
                         }
+                    }
+                    catch (Exception err)
+                    {
+                        _lastError = $"Error assigning the permissions to {remoteFullExecutable}: {err.Message}";
+                        return (true, _lastError);
                     }
                     finally
                     {

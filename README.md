@@ -258,7 +258,7 @@ The following are exactly the same options available on the  Microsoft "dotnet p
 
 ***LocalItems*** is an array that specifies the list of the additional files to be copied in the target folder. This is needed because the dotnet publish command copies just the essential files and not those marked as content or even those that are marked to be copied in the properties.
 
-***RemoteFolder*** is the absolute remote path to be used during the copy. This will be **synchronized** with the local folder to speed up the operation. If you want to just push file and folders, you have to specify the DeleteRemoteFolder to true.
+***RemoteFolder*** is the absolute remote path to be used during the copy. The copy is most efficient when the DeleteRemoteFolder is true.
 
 ***DeleteRemoteFolder*** specify if the folder should be deleted before copying.
 **Please triple check and backup the remote content before specifying true here because, if the folder is wrong, the effect can be destructive**
