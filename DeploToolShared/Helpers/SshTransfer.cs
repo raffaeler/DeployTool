@@ -357,7 +357,13 @@ namespace DeployTool.Helpers
                 client.Connect();
                 client.ErrorOccurred += Client_ErrorOccurred;
                 var walker = new DirectoryWalker(localFolder, recurse);
-                client.CreateDirectory(remoteFolder);
+                try
+                {
+                    // swallowing the "already exists" error
+                    // not using the "Exists" method because it throws an (internal) exception too
+                    client.CreateDirectory(remoteFolder);
+                }
+                catch (Exception) { }
 
                 var state = ConsoleManager.GetConsoleState();
                 _cursorTop = state.Top;
