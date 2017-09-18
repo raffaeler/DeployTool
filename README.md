@@ -1,14 +1,22 @@
 # DeployTool
-This tool was created with the purpose to deploy an application to a Linux ARM machine (Raspberry PI).
+This tool was created with the purpose to automate the deployment of an application to a Linux ARM machine (Raspberry PI).
 The typical steps run by the tool are:
 - launch "dotnet publish" to create a "Self Contained Deployment" (SCD) of the application
 - open an SSH connection
 - remove recursively the files in all 
 - copy all the files in the given folder
-- set the application executable "x" permissions on Linux
+- set the application executable (755) permissions on Linux
+
+Configuration files allows to chain a sequence of 'actions' that will be executed. The current available actions are the following and more actions may be added in future versions:
+- spawning a "dotnet publish" CLI command
+- copy files and/or directories recursively on the remote host with the option to delete the remote option first (via SSH)
+- execute a command on the remote host (via SSH)
+- run an application on the remote host  (via SSH)
+
+Configuration files also benefit from using pre-defined variables "$(variablename)" to ease the customization of the configurations.
 
 ## **Disclaimer**
-### **Re-read the license: author does not assume any responsibilty or liability**
+### **Re-read the license: the author does not assume any responsibilty or liability**
 
 > One of the actions copy a folder and its files on the remote device. Before doing it, it optionally deletes the remote folder tree. The **cleanup** is very useful but, if misconfigured, is also extremely dangerous and **potentially destructive**, especially if the credentials are administrative.
 > 
@@ -57,17 +65,17 @@ Available configurations:
 ```
 
 ## Commands
-**dotnet-deploy create -f <filename>.deploy**
-**dotnet-deploy create -file <filename>.deploy**
+**dotnet-deploy create -f *filename*.deploy**<br/>
+**dotnet-deploy create -file *filename*.deploy**
 
 This command creates a sample configuration json file that can be easily edited and modified as desired, avoiding the need to know the configuration schema.
 
-**dotnet-deploy create -f <filename>.deploy -m**
+**dotnet-deploy create -f <filename>.deploy -m**<br/>
 **dotnet-deploy create -f <filename>.deploy -minimal**
 
 The "minimal" option specify to create a minimalistic json configuration file containing just the most frequently used options.
 
-**dotnet-deploy run -f <filename>.deploy**
+**dotnet-deploy run -f <filename>.deploy**<br/>
 **dotnet-deploy run -file <filename>.deploy**
 
 This command run all the actions specified in the configuration file
