@@ -16,7 +16,7 @@ Configuration files allows to chain a sequence of 'actions' that will be execute
 Configuration files also benefit from using pre-defined variables "$(variablename)" to ease the customization of the configurations.
 
 ## **Disclaimer**
-### **Re-read the license: the author does not assume any responsibilty or liability**
+### **Re-read the [license](LICENSE): the author does not assume any responsibilty or liability**
 
 > One of the actions copy a folder and its files on the remote device. Before doing it, it optionally deletes the remote folder tree. The **cleanup** is very useful but, if misconfigured, is also extremely dangerous and **potentially destructive**, especially if the credentials are administrative.
 > 
