@@ -29,10 +29,12 @@ namespace DeployTool.Helpers
             ProjectName = Path.GetFileNameWithoutExtension(_projectFilename);
 
             LoadXml();
+            ProjectDir = currentFolder.FullName;
         }
 
         public string AssemblyName { get; private set; }
         public string ProjectName { get; private set; }
+        public string ProjectDir { get; private set; }
 
         private void LoadXml()
         {

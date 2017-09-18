@@ -27,6 +27,14 @@ namespace DeployTool
         public int ProcessCLI(string[] args)
         {
             _executerManager = new ExecuterManager();
+            _project = EnsureProjectFolder();
+
+            if (_project != null)
+            {
+                _executerManager.Bag.SetValue(PipelineBag.ProjectName, _project.ProjectName);
+                _executerManager.Bag.SetValue(PipelineBag.AssemblyName, _project.AssemblyName);
+                _executerManager.Bag.SetValue(PipelineBag.ProjectDir, _project.ProjectDir);
+            }
 
             var command = GetCommand(args);
             switch (command)
@@ -36,19 +44,15 @@ namespace DeployTool
 
                 case ProtectCommand protectCommand:
                     return ProcessProtectCommand(protectCommand);
+
+                case CreateCommand createCommand:
+                    return ProcessCreateCommand(createCommand);
             }
 
-            _project = EnsureProjectFolder();
             if (_project == null || command == null) return -1;
-
-            _executerManager.Bag.SetValue(PipelineBag.ProjectName, _project.ProjectName);
-            _executerManager.Bag.SetValue(PipelineBag.AssemblyName, _project.AssemblyName);
 
             switch (command)
             {
-                case CreateCommand createCommand:
-                    return ProcessCreateCommand(createCommand);
-
                 case InteractCommand interactCommand:
                     return ProcessInteractCommand(interactCommand);
 

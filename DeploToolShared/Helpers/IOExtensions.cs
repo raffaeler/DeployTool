@@ -16,9 +16,12 @@ namespace DeployTool.Helpers
         public static long GetSize(this DirectoryInfo directoryInfo)
         {
             long total = 0;
-            var walker = new DirectoryWalker(directoryInfo, true, (f, r) =>
+            var walker = new DirectoryWalker(directoryInfo, true);
+
+            walker.Walk((f, r) =>
             {
                 total += f.GetSize();
+                return true;
             });
 
             return total;
@@ -28,10 +31,13 @@ namespace DeployTool.Helpers
         {
             long total = 0;
             long num = 0;
-            var walker = new DirectoryWalker(directoryInfo, true, (f, r) =>
+            var walker = new DirectoryWalker(directoryInfo, true);
+
+            walker.Walk((f, r) =>
             {
                 num++;
                 total += f.GetSize();
+                return true;
             });
 
             return (total, num);

@@ -119,7 +119,7 @@ namespace DeployTool.Helpers
         public (bool isError, string output) SshCopyFileToRemote(FileInfo fileInfo, string remoteFolder)
         {
             _progress = new SshProgress(fileInfo.Length, 1, OnTransfer);
-            SshCreateRemoteFolder(remoteFolder);
+            bool wasCreated = SshCreateRemoteFolder(remoteFolder);
             var remoteFile = $"{remoteFolder.TrimEnd('/')}/{fileInfo.Name}";
 
             using (var client = new ScpClient(_connectionInfo))
@@ -137,6 +137,7 @@ namespace DeployTool.Helpers
                     client.Upload(fileInfo, remoteFile);
                     if (!string.IsNullOrEmpty(_lastError)) return (true, _lastError);
                     _progress.UpdateProgressFinal();
+                    ConsoleManager.SetConsoleState(0, state.Top + 1);
                 }
                 finally
                 {
@@ -148,8 +149,9 @@ namespace DeployTool.Helpers
             return (false, "Upload ok");
         }
 
-        public void SshCreateRemoteFolder(string remoteFolder)
+        public bool SshCreateRemoteFolder(string remoteFolder)
         {
+            bool wasCreated = false;
             if (!remoteFolder.StartsWith("/") && !remoteFolder.StartsWith("~"))
             {
                 throw new Exception($"RemoveRemote: The remote folder must be absolute. The request was instead: ({remoteFolder})");
@@ -159,19 +161,29 @@ namespace DeployTool.Helpers
 
             using (var client = new SftpClient(_connectionInfo))
             {
+                client.Connect();
                 try
                 {
-                    client.Connect();
                     string root = remoteFolder.StartsWith("~") ? "" : "/";
                     foreach (var folder in remoteFolders)
                     {
                         root += folder + "/";
-                        client.CreateDirectory(root);
+                        if (!client.Exists(root))
+                        {
+                            client.CreateDirectory(root);
+                            wasCreated = true;
+                        }
                     }
+                }
+                catch (Exception err)
+                {
+                    throw new Exception($"Cannot create the remote directory: {err.Message}");
                 }
                 finally
                 {
                 }
+
+                return wasCreated;
             }
         }
 
@@ -180,6 +192,12 @@ namespace DeployTool.Helpers
             _lastError = null;
             var folderInfo = localFolder.GetSizeAndAmount();
             _progress = new SshProgress(folderInfo.size, folderInfo.amount, OnTransfer);
+            bool wasCreated = SshCreateRemoteFolder(remoteFolder);
+
+            var walker = new DirectoryWalker(localFolder, recurse);
+
+            var rf = $"{remoteFolder.TrimEnd('/')}/";
+            //int count = 0;
 
             using (var client = new ScpClient(_connectionInfo))
             {
@@ -191,21 +209,67 @@ namespace DeployTool.Helpers
                 _cursorTop = state.Top;
                 ConsoleManager.ClearLine(state.Top);
 
-                try
-                {
-                    client.Upload(localFolder, remoteFolder);
-                    if (!string.IsNullOrEmpty(_lastError)) return (true, _lastError);
-                    _progress.UpdateProgressFinal();
-                }
-                finally
-                {
-                    state.Top = Console.CursorTop + 1;
-                    ConsoleManager.SetConsoleState(state);
-                    client.ErrorOccurred -= Client_ErrorOccurred;
-                    client.Uploading -= Client_Uploading;
-                }
+                //if (true)
+                //{
+                    try
+                    {
+                        client.Upload(localFolder, remoteFolder);
+                        if (!string.IsNullOrEmpty(_lastError)) return (true, _lastError);
+                        _progress.UpdateProgressFinal();
+                        ConsoleManager.SetConsoleState(0, state.Top + 1);
+                    }
+                    finally
+                    {
+                        state.Top = Console.CursorTop + 1;
+                        ConsoleManager.SetConsoleState(state);
+                        client.ErrorOccurred -= Client_ErrorOccurred;
+                        client.Uploading -= Client_Uploading;
+                    }
+                //}
+                //else
+                //{
+                //    try
+                //    {
+                //        var wasStopped = walker.Walk((fileInfo, relative) =>
+                //        {
+                //            try
+                //            {
+                //                client.Upload(fileInfo, rf + relative);
+                //                ++count;
+                //                return true;
+                //            }
+                //            catch (Exception err)
+                //            {
+                //                _lastError = err.Message;
+                //                return false;
+                //            }
+                //        },
+                //        (directoryInfo, relative) =>
+                //        {
+                //            SshCreateRemoteFolder(rf + relative);
+                //            return true;
+                //        });
+
+                //        if (wasStopped || !string.IsNullOrEmpty(_lastError)) return (true, _lastError);
+                //        _progress.UpdateProgressFinal(count);
+                //        ConsoleManager.SetConsoleState(0, state.Top + 1);
+                //    }
+                //    finally
+                //    {
+                //        state.Top = Console.CursorTop + 1;
+                //        ConsoleManager.SetConsoleState(state);
+                //        client.ErrorOccurred -= Client_ErrorOccurred;
+                //        client.Uploading -= Client_Uploading;
+                //    }
+                //}
             }
 
+
+            /*
+            // This is the previous implementation. It cannot be used because of a bug in the SSH library
+            // which double the remote folder name
+
+            */
             if (!string.IsNullOrEmpty(remoteExecutable))
             {
                 var remoteFullExecutable = $"{remoteFolder.TrimEnd('/')}/{remoteExecutable}";
@@ -231,6 +295,71 @@ namespace DeployTool.Helpers
             return (false, "Upload + Permission ok");
         }
 
+        public (bool isError, string output) SshCopyDirectoryToRemote2(DirectoryInfo localFolder, string remoteFolder, bool recurse, string remoteExecutable = null)
+        {
+            _lastError = null;
+            var folderInfo = localFolder.GetSizeAndAmount();
+            _progress = new SshProgress(folderInfo.size, folderInfo.amount, OnTransfer);
+            bool wasCreated = SshCreateRemoteFolder(remoteFolder);
+
+            var walker = new DirectoryWalker(localFolder, recurse);
+
+            var rf = $"{remoteFolder.TrimEnd('/')}/";
+
+            using (var client = new SftpClient(_connectionInfo))
+            {
+                client.Connect();
+                client.ErrorOccurred += Client_ErrorOccurred;
+
+                var state = ConsoleManager.GetConsoleState();
+                _cursorTop = state.Top;
+                ConsoleManager.ClearLine(state.Top);
+
+                try
+                {
+                    client.SynchronizeDirectories(localFolder.FullName, remoteFolder, "*.*");
+                    if (!string.IsNullOrEmpty(_lastError)) return (true, _lastError);
+                    _progress.UpdateProgressFinal();
+                    ConsoleManager.SetConsoleState(0, state.Top + 1);
+                }
+                finally
+                {
+                    state.Top = Console.CursorTop + 1;
+                    ConsoleManager.SetConsoleState(state);
+                    client.ErrorOccurred -= Client_ErrorOccurred;
+                }
+            }
+
+
+            /*
+            // This is the previous implementation. It cannot be used because of a bug in the SSH library
+            // which double the remote folder name
+
+            */
+            if (!string.IsNullOrEmpty(remoteExecutable))
+            {
+                var remoteFullExecutable = $"{remoteFolder.TrimEnd('/')}/{remoteExecutable}";
+                using (var client = new SftpClient(_connectionInfo))
+                {
+                    try
+                    {
+                        client.Connect();
+                        client.ErrorOccurred += Client_ErrorOccurred;
+                        if (client.Exists(remoteFullExecutable))
+                        {
+                            client.ChangePermissions(remoteFullExecutable, 755);
+                            if (!string.IsNullOrEmpty(_lastError)) return (true, _lastError);
+                        }
+                    }
+                    finally
+                    {
+                        client.ErrorOccurred -= Client_ErrorOccurred;
+                    }
+                }
+            }
+
+            return (false, "Upload + Permission ok");
+        }
 
         public (bool isError, string output) SshRemoveRemoteFolderTree(string remoteFolder)
         {

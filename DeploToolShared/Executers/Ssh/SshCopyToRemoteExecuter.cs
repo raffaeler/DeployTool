@@ -37,8 +37,18 @@ namespace DeployTool.Executers
 
                 if (attr.HasFlag(FileAttributes.Directory))
                 {
-                    var result = transfer.SshCopyDirectoryToRemote(new DirectoryInfo(expandedLocal), expandedRemote,
+                    (bool isError, string output) result;
+                    //if (_action.DeleteRemoteFolder)
+                    //{
+                    //    result = transfer.SshCopyDirectoryToRemote(new DirectoryInfo(expandedLocal), expandedRemote,
+                    //    _action.Recurse, remoteExecutable);
+                    //}
+                    //else
+                    {
+                        result = transfer.SshCopyDirectoryToRemote2(new DirectoryInfo(expandedLocal), expandedRemote,
                         _action.Recurse, remoteExecutable);
+                    }
+
                     bag.IsSuccess = !result.isError;
                     bag.Output = result.output;
                 }

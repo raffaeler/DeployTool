@@ -62,14 +62,24 @@ namespace DeployTool.Helpers
             _onTransfer(this);
         }
 
-        public void UpdateProgressFinal()
+        public void UpdateProgressFinal(long? currentCount = null)
         {
-            var percent = AlreadyTransferredSize * 100 / TotalTransferSize;
-            var msg = $"{percent}% {TotalNumberOfFiles} File(s), {FormatSize(TotalTransferSize)}";
-            var filler = new string(' ', Console.WindowWidth - msg.Length - 1);
-            FormattedString = msg + filler;
-            //ConsoleManager.WriteAt(0, _cursorTop, FormattedString);
-            _onTransfer(this);
+            if (TotalTransferSize != 0)
+            {
+                long total;
+                if (currentCount.HasValue)
+                    total = currentCount.Value;
+                else
+                    total = TotalNumberOfFiles;
+
+                //var percent = AlreadyTransferredSize * 100 / TotalTransferSize;
+                var percent = total * 100 / TotalNumberOfFiles;
+                var msg = $"{percent}% {TotalNumberOfFiles} File(s), {FormatSize(TotalTransferSize)}";
+                var filler = new string(' ', Console.WindowWidth - msg.Length - 1);
+                FormattedString = msg + filler;
+                //ConsoleManager.WriteAt(0, _cursorTop, FormattedString);
+                _onTransfer(this);
+            }
         }
 
         public static string FormatSize(long totalsize)

@@ -30,6 +30,12 @@ namespace DeployTool.Helpers
             Console.CursorTop = state.Top;
         }
 
+        public static void SetConsoleState(int left, int top)
+        {
+            Console.CursorLeft = left;
+            Console.CursorTop = top;
+        }
+
         public static void WriteAt(int left, int top, string message)
         {
             Console.CursorLeft = left;

@@ -236,7 +236,7 @@ A detailed explanation follows in the Actions chapter.
 
 The following are exactly the same options available on the  Microsoft "dotnet publish" command. You can refer to that command to have more info.
 
-***OutputFolder*** is the name of the folder to be used on the remote machine. The folder must be absolute because a complete removal is done first, **which can be a destructive action**.
+***OutputFolder*** is the name of the folder to be used on the local machine. The folder can be relative, in this case is relative to the project folder.
 
 ***RuntimeIdentifier*** is the "runtime identifier" used in the Microsoft "dotnet publish" command. For example when deploying on the Raspberry PI the runtime identifier is "linux-arm".
 
@@ -258,7 +258,7 @@ The following are exactly the same options available on the  Microsoft "dotnet p
 
 ***LocalItems*** is an array that specifies the list of the additional files to be copied in the target folder. This is needed because the dotnet publish command copies just the essential files and not those marked as content or even those that are marked to be copied in the properties.
 
-***RemoteFolder*** is the absolute remote path to be used during the copy,
+***RemoteFolder*** is the absolute remote path to be used during the copy. This will be **synchronized** with the local folder to speed up the operation. If you want to just push file and folders, you have to specify the DeleteRemoteFolder to true.
 
 ***DeleteRemoteFolder*** specify if the folder should be deleted before copying.
 **Please triple check and backup the remote content before specifying true here because, if the folder is wrong, the effect can be destructive**
