@@ -21,7 +21,7 @@ namespace DeployTool
                 .ToArray();
 
             System.IO.FileInfo current;
-            while ((current = ConsoleManager.RunLoop("Select a configuration file or 'q' to quit", files)) != null)
+            while ((current = ConsoleManager.RunLoop($"{_project.ProjectName}\r\nSelect a configuration file or 'q' to quit", files)) != null)
             {
                 var config = ReadConfiguration(current.FullName);
                 ProcessConfiguration(config);
