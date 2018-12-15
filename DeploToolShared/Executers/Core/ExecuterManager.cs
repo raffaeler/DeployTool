@@ -73,15 +73,19 @@ namespace DeployTool.Executers
             switch (action)
             {
                 case SshCopyToRemoteAction sshCopyToRemoteAction:
+                    //Console.WriteLine("SshCopyToRemoteAction");
                     return new SshCopyToRemoteExecuter(sshCopyToRemoteAction);
 
                 case DotnetPublishAction dotnetPublishAction:
+                    //Console.WriteLine("DotnetPublishAction");
                     return new DotNetPublishExecuter(dotnetPublishAction);
 
                 case SshRunCommandAction executeCommandAction:
+                    //Console.WriteLine("SshRunCommandAction");
                     return new SshRunCommandExecuter(executeCommandAction);
 
                 case SshRunAppAction executeAppAction:
+                    //Console.WriteLine("SshRunAppAction");
                     return new SshRunAppExecuter(executeAppAction);
 
                 default:

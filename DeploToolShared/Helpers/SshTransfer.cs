@@ -145,6 +145,11 @@ namespace DeployTool.Helpers
                     _cursorTop++;
                     ConsoleManager.SetConsoleState(0, _cursorTop);
                 }
+                catch (Exception err)
+                {
+                    Console.WriteLine($"Error on remote Upload: {err.ToString()}");
+                    throw;
+                }
                 finally
                 {
                     client.ErrorOccurred -= Client_ErrorOccurred;
@@ -238,12 +243,7 @@ namespace DeployTool.Helpers
             _lastError = null;
             var folderInfo = localFolder.GetSizeAndAmount();
             _progress = new SshProgress(folderInfo.size, folderInfo.amount, OnTransfer);
-            bool wasCreated = SshCreateRemoteFolder(remoteFolder);
-
-            var walker = new DirectoryWalker(localFolder, recurse);
-
-            var rf = $"{remoteFolder.TrimEnd('/')}/";
-            //int count = 0;
+            //bool wasCreated = SshCreateRemoteFolder(remoteFolder);
 
             using (var client = new ScpClient(_connectionInfo))
             {
@@ -255,15 +255,17 @@ namespace DeployTool.Helpers
                 _cursorTop = state.Top;
                 ConsoleManager.ClearLine(state.Top);
 
-                //if (true)
-                //{
                 try
                 {
                     client.Upload(localFolder, remoteFolder);
                     if (!string.IsNullOrEmpty(_lastError)) return (true, _lastError);
                     _progress.UpdateProgressFinal();
-                    _cursorTop++;
-                    ConsoleManager.SetConsoleState(0, _cursorTop);
+                    //_cursorTop++;
+                    //ConsoleManager.SetConsoleState(0, _cursorTop);
+                }
+                catch (Exception err)
+                {
+                    Console.WriteLine($"Error on Upload: {err.ToString()}");
                 }
                 finally
                 {
@@ -272,51 +274,9 @@ namespace DeployTool.Helpers
                     client.ErrorOccurred -= Client_ErrorOccurred;
                     client.Uploading -= Client_Uploading;
                 }
-                //}
-                //else
-                //{
-                //    try
-                //    {
-                //        var wasStopped = walker.Walk((fileInfo, relative) =>
-                //        {
-                //            try
-                //            {
-                //                client.Upload(fileInfo, rf + relative);
-                //                ++count;
-                //                return true;
-                //            }
-                //            catch (Exception err)
-                //            {
-                //                _lastError = err.Message;
-                //                return false;
-                //            }
-                //        },
-                //        (directoryInfo, relative) =>
-                //        {
-                //            SshCreateRemoteFolder(rf + relative);
-                //            return true;
-                //        });
-
-                //        if (wasStopped || !string.IsNullOrEmpty(_lastError)) return (true, _lastError);
-                //        _progress.UpdateProgressFinal(count);
-                //        ConsoleManager.SetConsoleState(0, state.Top + 1);
-                //    }
-                //    finally
-                //    {
-                //        state.Top = Console.CursorTop + 1;
-                //        ConsoleManager.SetConsoleState(state);
-                //        client.ErrorOccurred -= Client_ErrorOccurred;
-                //        client.Uploading -= Client_Uploading;
-                //    }
-                //}
             }
 
 
-            /*
-            // This is the previous implementation. It cannot be used because of a bug in the SSH library
-            // which double the remote folder name
-
-            */
             if (!string.IsNullOrEmpty(remoteExecutable))
             {
                 var remoteFullExecutable = $"{remoteFolder.TrimEnd('/')}/{remoteExecutable}";
@@ -472,6 +432,7 @@ namespace DeployTool.Helpers
             {
                 try
                 {
+                    //Console.WriteLine("Deleting remote folder");
                     client.Connect();
                     var command = client.CreateCommand($"rm -rf {remoteFolder}");
                     var output1 = command.Execute();
@@ -482,6 +443,11 @@ namespace DeployTool.Helpers
                     }
 
                     return (false, output);
+                }
+                catch (Exception err)
+                {
+                    Console.WriteLine($"Error deleting remote folder: {err.ToString()}");
+                    throw;
                 }
                 finally
                 {
@@ -500,6 +466,11 @@ namespace DeployTool.Helpers
                     var command = client.CreateCommand($"{remoteCommand}");
                     var output = command.Execute();
                     return output;
+                }
+                catch (Exception err)
+                {
+                    Console.WriteLine($"Error running command {remoteCommand}: {err.ToString()}");
+                    throw;
                 }
                 finally
                 {
@@ -536,7 +507,7 @@ namespace DeployTool.Helpers
             }
             catch (Exception err)
             {
-                Debug.WriteLine(err.ToString());
+                Console.WriteLine($"Error loading PrivateKeyFile: {err.ToString()}");
                 return null;
             }
         }
