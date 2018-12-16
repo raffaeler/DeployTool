@@ -25,8 +25,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Configuration\Actions\SshRunCommandAction.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Configuration\Actions\SshRunRemoteAppAction.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Configuration\Model\DeployConfiguration.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Configuration\Model\PrivateKeyData.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Configuration\Model\SshConfiguration.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Configuration\Serialization\ActionConverter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Configuration\Serialization\DeployConfigurationConverter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Configuration\Serialization\JsonContractResolver.cs" />
@@ -49,19 +47,13 @@
     <Compile Include="$(MSBuildThisFileDirectory)Executers\Ssh\SshRunAppExecuter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Executers\Ssh\SshRunCommandExecuter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\ConsoleManager.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Helpers\DirectoryWalker.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Helpers\DPApiHelper.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Helpers\IOExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\ProjectHelper.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Helpers\SshProgress.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Helpers\SshTransfer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\VariablesHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Obsolete\Interactivity\ConsoleManager.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Obsolete\Interactivity\InvokerKind.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Obsolete\Interactivity\MenuItem.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Obsolete\Interactivity\Navigator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Obsolete\WatchCommand.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Program.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)DeployTool.png" />

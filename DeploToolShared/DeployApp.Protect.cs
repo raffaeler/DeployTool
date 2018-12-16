@@ -6,7 +6,6 @@ using DeployTool.CommandLine;
 using DeployTool.Configuration;
 using DeployTool.Executers;
 using DeployTool.Helpers;
-using DeploToolShared.Helpers;
 
 namespace DeployTool
 {

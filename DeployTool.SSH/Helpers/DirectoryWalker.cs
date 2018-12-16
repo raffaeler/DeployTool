@@ -25,7 +25,8 @@ namespace DeployTool.Helpers
             _recurse = recurse;
         }
 
-        public bool Walk(Func<FileInfo, string, bool> onFileAction, Func<DirectoryInfo, string, bool> onDirectoryAction = null)
+        public bool Walk(Func<FileInfo, string, bool> onFileAction,
+            Func<DirectoryInfo, string, bool> onDirectoryAction = null)
         {
             _shouldContinue = true;
             this.OnFileAction = onFileAction;

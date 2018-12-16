@@ -10,6 +10,8 @@ namespace DeployTool.Executers
     public class SshCopyToRemoteExecuter : ExecuterBase
     {
         private SshCopyToRemoteAction _action;
+        private int _cursorTop;
+
         public SshCopyToRemoteExecuter(SshCopyToRemoteAction action)
         {
             _action = action;
@@ -46,7 +48,7 @@ namespace DeployTool.Executers
                     //else
                     {
                         result = transfer.SshCopyDirectoryToRemote2(new DirectoryInfo(expandedLocal), expandedRemote,
-                        _action.Recurse, remoteExecutable);
+                        _action.Recurse, OnProgress, remoteExecutable);
                     }
 
                     bag.IsSuccess = !result.isError;
@@ -54,13 +56,40 @@ namespace DeployTool.Executers
                 }
                 else
                 {
-                    var result = transfer.SshCopyFileToRemote(new FileInfo(expandedLocal), expandedRemote);
+                    var result = transfer.SshCopyFileToRemote(new FileInfo(expandedLocal), expandedRemote, OnProgress);
                     bag.IsSuccess = !result.isError;
                     bag.Output = result.output;
                 }
 
             }
 
+        }
+
+        private void OnProgress(SshProgress sshProgress)
+        {
+            var context = sshProgress.OperationContext;
+            switch (sshProgress.SshTransferStatus)
+            {
+                case SshTransferStatus.Starting:
+                    break;
+                case SshTransferStatus.Connected:
+                    var state = ConsoleManager.GetConsoleState();
+                    _cursorTop = state.Top;
+                    ConsoleManager.ClearLine(state.Top);
+                    break;
+                case SshTransferStatus.UpdateProgress:
+                    _cursorTop++;
+                    ConsoleManager.SetConsoleState(0, _cursorTop);
+                    break;
+                case SshTransferStatus.Completed:
+                    break;
+                case SshTransferStatus.Disconnected:
+                    ConsoleManager.WriteSuccess($"{context}: Success!");
+                    break;
+                case SshTransferStatus.ErrorAborting:
+                    ConsoleManager.WriteError($"{context} Error: {sshProgress.LastError.ToString()}");
+                    break;
+            }
         }
     }
 }

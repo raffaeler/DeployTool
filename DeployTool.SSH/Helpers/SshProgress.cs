@@ -4,7 +4,7 @@ using System.Text;
 
 namespace DeployTool.Helpers
 {
-    internal class SshProgress
+    public class SshProgress
     {
         private long _lastFilePartial;
         private Action<SshProgress> _onTransfer;
@@ -12,12 +12,15 @@ namespace DeployTool.Helpers
         private TimeSpan _minRefresh = TimeSpan.FromMilliseconds(750);
         private object _lock = new object();
 
-        public SshProgress(long totalTransferSize, long numberOfFiles, Action<SshProgress> onTransfer)
+        public SshProgress(string operationContext, long totalTransferSize, long numberOfFiles, Action<SshProgress> onTransfer)
         {
+            OperationContext = operationContext;
             Reset(totalTransferSize, numberOfFiles);
             _onTransfer = onTransfer;
         }
 
+        public SshTransferStatus SshTransferStatus { get; private set; }
+        public string OperationContext { get; private set; }
         public long Percent { get; private set; }
         public long TotalNumberOfFiles { get; private set; }
         public long TotalTransferSize { get; private set; }
@@ -26,6 +29,8 @@ namespace DeployTool.Helpers
         public string CurrentFilename { get; private set; }
         public long CurrentFileIndex { get; private set; }
         public string FormattedString { get; private set; }
+        public Exception LastError { get; private set; }
+        public int ActiveConnections { get; private set; }
 
         public void Reset(long totalTransferSize, long numberOfFiles)
         {
@@ -40,12 +45,37 @@ namespace DeployTool.Helpers
             CurrentFileIndex = 0;
             FormattedString = string.Empty;
             _lastUpdate = DateTime.Now;
+            SshTransferStatus = SshTransferStatus.Disconnected;
+            LastError = null;
         }
 
-        public void UpdateProgress(string filename, long size, long partial)
+        internal void UpdateConnected(int count)
+        {
+            SshTransferStatus = SshTransferStatus.Connected;
+            ActiveConnections = count;
+            _onTransfer?.Invoke(this);
+        }
+
+        internal void UpdateDisconnected(int count)
+        {
+            SshTransferStatus = SshTransferStatus.Disconnected;
+            ActiveConnections = count;
+            _onTransfer?.Invoke(this);
+        }
+
+        internal void UpdateProgressErrorAborting(Exception err)
+        {
+            SshTransferStatus = SshTransferStatus.ErrorAborting;
+            LastError = err;
+            _onTransfer?.Invoke(this);
+        }
+
+        internal void UpdateProgress(string filename, long size, long partial)
         {
             lock (_lock)
             {
+                SshTransferStatus = SshTransferStatus.UpdateProgress;
+
                 if (CurrentFilename != filename)
                 {
                     _lastFilePartial = 0;
@@ -68,12 +98,12 @@ namespace DeployTool.Helpers
                 if (DateTime.Now - _lastUpdate > _minRefresh)
                 {
                     _lastUpdate = DateTime.Now;
-                    _onTransfer(this);
+                    _onTransfer?.Invoke(this);
                 }
             }
         }
 
-        public void UpdateProgressFinal(long? currentCount = null)
+        internal void UpdateProgressFinal(long? currentCount = null)
         {
             lock (_lock)
             {
@@ -91,8 +121,10 @@ namespace DeployTool.Helpers
                     var filler = new string(' ', Console.WindowWidth - msg.Length - 1);
                     FormattedString = msg + filler;
                     //ConsoleManager.WriteAt(0, _cursorTop, FormattedString);
-                    _onTransfer(this);
+                    _onTransfer?.Invoke(this);
                 }
+
+                SshTransferStatus = SshTransferStatus.Completed;
             }
         }
 

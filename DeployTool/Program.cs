@@ -27,37 +27,37 @@ namespace DeployTool
             return _app.ProcessCLI(args);
         }
 
-        private static void obsolete()
-        {
+        //private static void obsolete()
+        //{
 
 
-            DumpProject();
+        //    DumpProject();
 
 
-            var config = new SshConfiguration();
-            config.Host = "colibri-t30";
-            config.Username = "root";
-            config.Password = null;
-            config.Port = 22;
-            config.ProxyHost = null;
-            config.ProxyUsername = null;
-            config.ProxyPassword = null;
-            config.ProxyPort = 8080;
-            config.PrivateKeys = null;
-            var transfer = new SshTransfer(config);
+        //    var config = new SshConfiguration();
+        //    config.Host = "colibri-t30";
+        //    config.Username = "root";
+        //    config.Password = null;
+        //    config.Port = 22;
+        //    config.ProxyHost = null;
+        //    config.ProxyUsername = null;
+        //    config.ProxyPassword = null;
+        //    config.ProxyPort = 8080;
+        //    config.PrivateKeys = null;
+        //    var transfer = new SshTransfer(config);
 
-            transfer.SshCopyFileToRemote(new System.IO.FileInfo(@"h:\3d\raf.txt"), "/temp/1/2/3/aaaa/caaaaa");
-            transfer.SshRunCommand("ls");
-            transfer.SshRemoveRemoteFolderTree("/temp");
-            //transfer.Transfer(new System.IO.DirectoryInfo(@"H:\3D"), "/temp", true, "/temp/raf.txt");
+        //    transfer.SshCopyFileToRemote(new System.IO.FileInfo(@"h:\3d\raf.txt"), "/temp/1/2/3/aaaa/caaaaa");
+        //    transfer.SshRunCommand("ls");
+        //    transfer.SshRemoveRemoteFolderTree("/temp");
+        //    //transfer.Transfer(new System.IO.DirectoryInfo(@"H:\3D"), "/temp", true, "/temp/raf.txt");
 
-            //DirectoryWalker walker = new DirectoryWalker(new System.IO.DirectoryInfo("h:\\temp"), true, (f, r) =>
-            //{
-            //    Console.WriteLine($"{f.FullName}\t{r}");
-            //});
+        //    //DirectoryWalker walker = new DirectoryWalker(new System.IO.DirectoryInfo("h:\\temp"), true, (f, r) =>
+        //    //{
+        //    //    Console.WriteLine($"{f.FullName}\t{r}");
+        //    //});
 
-            Console.WriteLine("Hello World!");
-        }
+        //    Console.WriteLine("Hello World!");
+        //}
 
         private static void DumpProject()
         {

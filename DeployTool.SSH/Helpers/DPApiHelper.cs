@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace DeploToolShared.Helpers
+namespace DeployTool.Helpers
 {
     public static class DPApiHelper
     {
