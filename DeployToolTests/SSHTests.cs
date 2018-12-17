@@ -40,8 +40,10 @@ namespace DeployToolTests
                 //session.SshCreateRemoteFolder("/sshtest-absolute");
                 //session.SshRemoveRemoteFolderTree("/sshtest-absolute");
 
-                session.SshCreateRemoteFolder("~/sshtest-home");
-                session.SshRemoveRemoteFolderTree("~/sshtest-home");
+                Assert.IsTrue(session.SshCreateRemoteFolder("~/sshtest-home"));
+                Assert.IsFalse(session.SshCreateRemoteFolder("~/sshtest-home"));
+                Assert.IsTrue(session.SshRemoveRemoteFolderTree("~/sshtest-home"));
+                Assert.IsFalse(session.SshRemoveRemoteFolderTree("~/sshtest-home"));
             }
         }
 
@@ -87,7 +89,8 @@ namespace DeployToolTests
 
                 // now, we make some changes on the remote side
                 // two missing files
-                session.SshDeleteRemoteFile("~/test-delete/fc.txt");
+                Assert.IsTrue(session.SshDeleteRemoteFile("~/test-delete/fc.txt"));
+                Assert.IsFalse(session.SshDeleteRemoteFile("~/test-delete/fc.txt"));
                 session.SshDeleteRemoteFile("~/test-delete/sub1/f2sub1.txt");
                 // one file with changed (trigger the wrong hash)
                 session.SshRemoteCopy("~/test-delete/sub2/sub21/f1sub21.txt", "~/test-delete/sub2/sub21/f2sub21.txt");

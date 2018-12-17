@@ -20,8 +20,8 @@ namespace DeployTool.Executers
             int res = -1;
             try
             {
-                SshTransfer sshTransfer = new SshTransfer(deployConfiguration.Ssh);
-                Bag.SetValue("ssh", sshTransfer);
+                var sshManager = new SshManager(deployConfiguration.Ssh);
+                Bag.SetValue("ssh", sshManager);
 
                 Console.WriteLine($"Processing {deployConfiguration.Description}");
 

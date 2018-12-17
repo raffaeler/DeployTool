@@ -24,7 +24,7 @@ namespace DeployTool.Executers
 
         public IDictionary<string, object> Bag { get; set; }
 
-        public bool GetSshOrFail(out SshTransfer ssh)
+        public bool GetSshOrFail(out SshManager ssh)
         {
             if (!TryGet("ssh", out ssh))
             {

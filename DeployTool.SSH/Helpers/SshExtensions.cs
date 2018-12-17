@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 
@@ -20,7 +21,7 @@ namespace DeployTool.Helpers
             }
             catch (Exception err)
             {
-                Console.WriteLine($"Error running command {remoteCommand}: {err.ToString()}");
+                Debug.WriteLine($"Error running command {remoteCommand}: {err.ToString()}");
                 throw;
             }
         }
@@ -32,6 +33,7 @@ namespace DeployTool.Helpers
             return session.RunCommand(cmd);
         }
 
+        [Obsolete("Avoid this call as the underlying library throws when the file does not exists")]
         public static bool RemoteDirectoryExists(this SshSession session, string remoteFolder)
         {
             var client = session.SftpClientConnected;
@@ -75,7 +77,7 @@ namespace DeployTool.Helpers
                 return false;
             }
 
-            throw new Exception($"Error checking remote file existance: {output}");
+            throw new Exception($"Error on {nameof(RemoteFileExists)}: the command \"{cmd}\" returned \"{output}\"");
         }
 
         public static bool RemoteFolderExists(this SshSession session, string remoteFolder)
@@ -91,7 +93,7 @@ namespace DeployTool.Helpers
                 return false;
             }
 
-            throw new Exception($"Error checking remote file existance: {output}");
+            throw new Exception($"Error on {nameof(RemoteFolderExists)}: the command \"{cmd}\" returned \"{output}\"");
         }
 
         public static string SshRemoteCopy(this SshSession session, string remoteSource, string remoteTarget)
@@ -100,12 +102,12 @@ namespace DeployTool.Helpers
             return session.RunCommand(cmd);
         }
 
-        public static (bool isError, string output) MakeRemoteExecutable(this SshSession session,
+        public static void MakeRemoteExecutable(this SshSession session,
             string remoteFolder, string remoteExecutable)
         {
             if (string.IsNullOrEmpty(remoteExecutable))
             {
-                return (false, string.Empty);
+                throw new ArgumentException(nameof(remoteExecutable));
             }
 
             var remoteFullExecutable = $"{remoteFolder.TrimEnd('/')}/{remoteExecutable}";
@@ -116,17 +118,14 @@ namespace DeployTool.Helpers
                 if (session.RemoteFileExists(remoteFullExecutable))
                 {
                     client.ChangePermissions(remoteFullExecutable, 755);
-                    if (session.SshProgress?.LastError != null) return (true, session.SshProgress.LastError.ToString());
                 }
             }
             catch (Exception err)
             {
                 var fullError = new Exception($"Error assigning the permissions to {remoteFullExecutable}: {err.Message}", err);
                 session.SshProgress?.UpdateProgressErrorAborting(fullError);
-                return (true, fullError.Message);
+                throw fullError;
             }
-
-            return (false, string.Empty);
         }
 
         public static IDictionary<string, string> GetSha1ForTree(this SshSession session, string remoteFolder)
@@ -166,7 +165,7 @@ namespace DeployTool.Helpers
             return result;
         }
 
-        public static (bool isError, string output) SshCopyDirectoryToRemote(this SshSession session,
+        public static SshOperationResult SshCopyDirectoryToRemote(this SshSession session,
             DirectoryInfo localFolder, string remoteFolder,
             bool recurse, Action<SshProgress> onTransfer = null,
             string remoteExecutable = null)
@@ -202,7 +201,7 @@ namespace DeployTool.Helpers
                     catch (Exception err)
                     {
                         session.SshProgress.UpdateProgressErrorAborting(err);
-                        return false;
+                        throw;
                     }
                 },
                 (directoryInfo, relative) =>
@@ -212,16 +211,17 @@ namespace DeployTool.Helpers
                 });
 
                 if (!isSuccess || session.SshProgress.LastError != null)
-                    return (true, session.SshProgress.LastError.Message);
+                    throw session.SshProgress.LastError;
             }
             catch (Exception err)
             {
-                var fullError = $"Error copying {session.SshProgress.CurrentFilename}: {err.Message}";
-                session.SshProgress.UpdateProgressErrorAborting(new Exception(fullError, err));
-                return (true, fullError);
+                var fullError = new Exception($"{nameof(SshCopyDirectoryToRemote)}: error copying {session.SshProgress.CurrentFilename}: {err.Message}", err);
+                session.SshProgress.UpdateProgressErrorAborting(fullError);
+                throw fullError;
             }
 
-            return session.MakeRemoteExecutable(remoteFolder, remoteExecutable);
+            session.MakeRemoteExecutable(remoteFolder, remoteExecutable);
+            return new SshOperationResult(nameof(SshCopyDirectoryToRemote));
         }
 
         public static bool SshCreateRemoteFolder(this SshSession session, string remoteFolder)
@@ -262,13 +262,13 @@ namespace DeployTool.Helpers
             }
             catch (Exception err)
             {
-                throw new Exception($"Cannot create the remote directory: {err.Message}");
+                throw new Exception($"{nameof(SshCreateRemoteFolder)}: {err.Message}", err);
             }
 
             return wasCreated;
         }
 
-        public static (bool isError, string output) SshCopyFileToRemote(this SshSession session, FileInfo fileInfo,
+        public static SshOperationResult SshCopyFileToRemote(this SshSession session, FileInfo fileInfo,
             string remoteFolder, Action<SshProgress> onTransfer)
         {
             session.CreateProgress("SshCopyFileToRemote", fileInfo.Length, 1, onTransfer);
@@ -287,20 +287,19 @@ namespace DeployTool.Helpers
                 }
 
                 if (session.SshProgress.LastError != null)
-                    return (true, session.SshProgress.LastError.Message);
+                    throw session.SshProgress.LastError;
             }
             catch (Exception err)
             {
-                //Console.WriteLine($"Error on remote Upload: {err.ToString()}");
                 session.SshProgress.UpdateProgressErrorAborting(err);
-                throw;
+                throw new Exception($"{nameof(SshCopyFileToRemote)}: {err.Message}", err);
             }
 
 
-            return (false, "Upload ok");
+            return new SshOperationResult(nameof(SshCopyFileToRemote));
         }
 
-        public static (bool isError, string output) SshDeleteRemoteFile(this SshSession session,
+        public static bool SshDeleteRemoteFile(this SshSession session,
             string remoteFile)
         {
             var client = session.SftpClientConnected;
@@ -310,21 +309,20 @@ namespace DeployTool.Helpers
             {
                 if (!session.RemoteFileExists(remoteFile))
                 {
-                    return (false, string.Empty);
+                    return false;
                 }
 
                 client.DeleteFile(remoteFile);
-                return (false, session.SshProgress.LastError?.Message);
+                return true;
             }
             catch (Exception err)
             {
-                //Console.WriteLine($"Error on remote Upload: {err.ToString()}");
                 session.SshProgress.UpdateProgressErrorAborting(err);
-                throw;
+                throw new Exception($"{nameof(SshDeleteRemoteFile)}: {err.Message}", err);
             }
         }
 
-        public static (bool isError, string output) SshRemoveRemoteFolderTree(this SshSession session, string remoteFolder)
+        public static bool SshRemoveRemoteFolderTree(this SshSession session, string remoteFolder)
         {
             if (!remoteFolder.StartsWith("/") && !remoteFolder.StartsWith("~"))
             {
@@ -350,21 +348,42 @@ namespace DeployTool.Helpers
                 var output = command.Result;
                 if (!string.IsNullOrEmpty(command.Error))
                 {
-                    return (true, command.Error);
+                    throw new Exception(command.Error);
                 }
 
-                return (false, output);
+                return true;
             }
             catch (Exception err)
             {
-                Console.WriteLine($"Error deleting remote folder: {err.ToString()}");
-                throw;
+                throw new Exception($"{nameof(SshRemoveRemoteFolderTree)}: error on the delete command: {err.ToString()}");
             }
         }
 
+        /// <summary>
+        /// This method Echo/Mirror a Windows folder to the remote side (Linux or Windows)
+        /// First the complete list of hashes for the existent (if any) files on the remote
+        /// side is retrieved. See the Sha1 method docs.
+        /// The local file system is walked recursively finding files and folders.
+        /// The folders are created if they do not exists, but they are not removed on the
+        /// remote side since the hash dictionary only contains files but not folders.
+        /// The files are processed depending whether they exists or not on the remote side.
+        /// If a file already exist, the hash is computed locally. If they match, the file is
+        /// skipped, otherwise it is overwritten.
+        /// If the file does not exist, it is copied on the remote side.
+        /// At the end the files on the remote side that had no match with the local side
+        /// are processed. Depending on a flag they are removed or not.
+        /// A summary report is returned to the caller
+        /// </summary>
+        /// <param name="session">The ssh session to use</param>
+        /// <param name="localFolder">The local folder</param>
+        /// <param name="remoteFolder">The remote folder (absolute or relative to user's home)</param>
+        /// <param name="onTransfer">The detailed callback</param>
+        /// <param name="onRemoving">A callback asking confirm before removing a file on the remote side.
+        /// Passing null will remove all files</param>
+        /// <returns></returns>
         public static SshSyncResult EchoFoldersRecursive(this SshSession session,
             DirectoryInfo localFolder, string remoteFolder, Action<SshProgress> onTransfer = null,
-            string remoteExecutable = null)
+            Func<string, bool> onRemoving = null)
         {
             var result = new SshSyncResult();
             var folderInfo = localFolder.GetSizeAndAmount();
@@ -407,8 +426,13 @@ namespace DeployTool.Helpers
             var remaining = remoteHashes.Keys;
             foreach(var file in remaining)
             {
-                result.Removed++;
-                client.DeleteFile(file);
+                // returning null or true will remove the file
+                var toremove = onRemoving?.Invoke(file);
+                if (!toremove.HasValue || toremove.Value)
+                {
+                    result.Removed++;
+                    client.DeleteFile(file);
+                }
             }
 
             // TODO
@@ -464,10 +488,6 @@ namespace DeployTool.Helpers
             {
                 if(!session.RemoteFolderExists(rf + relative))
                     client.CreateDirectory(rf + relative);
-
-                //session.SshCreateRemoteFolder(rf + relative);
-                //SshCreateRemoteFolder(rf + relative);
-                //client.CreateDirectory(rf + relative);
                 return true;
             }
         }

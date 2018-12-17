@@ -19,50 +19,58 @@ namespace DeployTool.Executers
 
         public override void Execute(PipelineBag bag)
         {
-            if (!bag.GetSshOrFail(out SshTransfer transfer)) return;
+            if (!bag.GetSshOrFail(out SshManager manager)) return;
 
-            if (_action.DeleteRemoteFolder)
+            using (var session = manager.CreateSession())
             {
-                var expanded = _action.RemoteFolder.Expand(bag);
-                transfer.SshRemoveRemoteFolderTree(expanded);
-            }
-
-            foreach (var item in _action.LocalItems)
-            {
-                var expandedLocal = item.Expand(bag);
-                var expandedRemote = _action.RemoteFolder.Expand(bag);
-
-                FileAttributes attr = File.GetAttributes(expandedLocal);
-
-                // the name of the remote executable is the same of the project name
-                bag.TryGet(PipelineBag.AssemblyName, out string remoteExecutable);
-
-                if (attr.HasFlag(FileAttributes.Directory))
+                if (_action.DeleteRemoteFolder)
                 {
-                    (bool isError, string output) result;
-                    //if (_action.DeleteRemoteFolder)
-                    //{
-                    //    result = transfer.SshCopyDirectoryToRemote(new DirectoryInfo(expandedLocal), expandedRemote,
-                    //    _action.Recurse, remoteExecutable);
-                    //}
-                    //else
+                    var expanded = _action.RemoteFolder.Expand(bag);
+                    session.SshRemoveRemoteFolderTree(expanded);
+                }
+
+                foreach (var item in _action.LocalItems)
+                {
+                    var expandedLocal = item.Expand(bag);
+                    var expandedRemote = _action.RemoteFolder.Expand(bag);
+
+                    FileAttributes attr = File.GetAttributes(expandedLocal);
+
+                    // the name of the remote executable is the same of the project name
+                    bag.TryGet(PipelineBag.AssemblyName, out string remoteExecutable);
+
+                    if (attr.HasFlag(FileAttributes.Directory))
                     {
-                        result = transfer.SshCopyDirectoryToRemote2(new DirectoryInfo(expandedLocal), expandedRemote,
-                        _action.Recurse, OnProgress, remoteExecutable);
+                        try
+                        {
+                            var result = session.SshCopyDirectoryToRemote(new DirectoryInfo(expandedLocal), expandedRemote,
+                                _action.Recurse, OnProgress, remoteExecutable);
+                            bag.IsSuccess = true;
+                            bag.Output = result.LastOutput;
+                        }
+                        catch(Exception err)
+                        {
+                            bag.IsSuccess = false;
+                            bag.Output = err.ToString();
+                        }
+                    }
+                    else
+                    {
+                        try
+                        {
+                            var result = session.SshCopyFileToRemote(new FileInfo(expandedLocal), expandedRemote, OnProgress);
+                            bag.IsSuccess = true;
+                            bag.Output = result.LastOutput;
+                        }
+                        catch (Exception err)
+                        {
+                            bag.IsSuccess = false;
+                            bag.Output = err.ToString();
+                        }
                     }
 
-                    bag.IsSuccess = !result.isError;
-                    bag.Output = result.output;
                 }
-                else
-                {
-                    var result = transfer.SshCopyFileToRemote(new FileInfo(expandedLocal), expandedRemote, OnProgress);
-                    bag.IsSuccess = !result.isError;
-                    bag.Output = result.output;
-                }
-
             }
-
         }
 
         private void OnProgress(SshProgress sshProgress)
