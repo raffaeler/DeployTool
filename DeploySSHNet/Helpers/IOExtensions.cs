@@ -1,0 +1,46 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+
+using System.IO;
+
+namespace DeploySSH.Helpers
+{
+    public static class IOExtensions
+    {
+        public static long GetSize(this FileInfo fileInfo)
+        {
+            return fileInfo.Length;
+        }
+
+        public static long GetSize(this DirectoryInfo directoryInfo)
+        {
+            long total = 0;
+            var walker = new DirectoryWalker(directoryInfo, true);
+
+            walker.Walk((f, r) =>
+            {
+                total += f.GetSize();
+                return true;
+            });
+
+            return total;
+        }
+
+        public static (long size, long amount) GetSizeAndAmount(this DirectoryInfo directoryInfo)
+        {
+            long total = 0;
+            long num = 0;
+            var walker = new DirectoryWalker(directoryInfo, true);
+
+            walker.Walk((f, r) =>
+            {
+                num++;
+                total += f.GetSize();
+                return true;
+            });
+
+            return (total, num);
+        }
+    }
+}

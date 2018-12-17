@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "DeployTool": {
-      "commandName": "Project",
-      "commandLineArgs": "interact"
-    }
-  }
-}
