@@ -17,8 +17,7 @@
     </Description>
     <Copyright>Copyright (c) 2017, Raffaele Rialdi</Copyright>
     <PackageVersion>1.5.0</PackageVersion>
-    <PackageLicenseUrl>https://github.com/raffaeler/DeployTool/blob/master/LICENSE</PackageLicenseUrl>
-    <!--<PackageLicenseFile>???</PackageLicenseFile>-->
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageProjectUrl>https://github.com/raffaeler/deploytool</PackageProjectUrl>
     <RepositoryUrl>https://github.com/raffaeler/deploytool</RepositoryUrl>
     <RepositoryType>GitHub</RepositoryType>
@@ -29,6 +28,10 @@
     <ApplicationIcon>deploytool_xjs_icon.ico</ApplicationIcon>
   </PropertyGroup>
 
+  <ItemGroup>
+    <None Include="..\LICENSE" Pack="true" PackagePath=""/>
+  </ItemGroup>
+  
   <ItemGroup>
     <Compile Remove="nupkg\**" />
     <EmbeddedResource Remove="nupkg\**" />
