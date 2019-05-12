@@ -65,6 +65,20 @@ namespace DeploySSH.Configuration
         public bool IsSelfContained { get; set; }
 
         /// <summary>
+        /// -p:PublishSingleFile=true
+        /// Creates a single file for the whole application and dependencies
+        /// Available only from .NET Core 3.0 on
+        /// </summary>
+        public bool IsPublishSingleFile { get; set; }
+
+        /// <summary>
+        /// -p:PublishReadyToRun=true
+        /// Compile the application in native code to avoid jitting times
+        /// Available only from .NET Core 3.0 on
+        /// </summary>
+        public bool IsPublishReadyToRun { get; set; }
+
+        /// <summary>
         /// --no-restore
         /// Does not do an implicit restore when executing the command.
         /// </summary>
@@ -101,6 +115,8 @@ namespace DeploySSH.Configuration
             AddIfAvailable(sb, "--version-suffix", VersionSuffix);
             AddIfAvailable(sb, "--manifest", Manifest);
             AddWithValueIfAvailable(sb, "--self-contained", IsSelfContained, true);
+            AddWithValueIfAvailable(sb, "-p:PublishSingleFile", IsPublishSingleFile, true);
+            AddWithValueIfAvailable(sb, "-p:IsPublishReadyToRun", IsPublishReadyToRun, true);
             AddIfAvailable(sb, "--no-restore", IsNoRestore);
             AddIfAvailable(sb, "-v", Verbosity);
             AddIfAvailable(sb, "--no-dependencies", IsNoDependencies);

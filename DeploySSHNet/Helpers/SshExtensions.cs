@@ -171,7 +171,6 @@ namespace DeploySSH.Helpers
 
             var rf = $"{remoteFolder.TrimEnd('/')}/";
             int count = 0;
-            var clicmd = session.SshClientConnected;
             var client = session.SftpClientConnected;
 
             var walker = new DirectoryWalker(localFolder, recurse);
@@ -389,7 +388,6 @@ namespace DeploySSH.Helpers
             var rf = $"{remoteFolder.TrimEnd('/')}/";
             if (rf.StartsWith("~/")) rf = rf.Substring(2);
 
-            var clicmd = session.SshClientConnected;
             var client = session.SftpClientConnected;
 
             var remoteHashes = session.GetSha1ForTree(rf);

@@ -106,3 +106,4 @@ If you want to install from the sources, proceed as follows:
 You can iterate through this last two points to make changes and test the results.
 
 Any feedback, wish and issue are welcome. **Please submit an issue before requesting a pull request**.
+
